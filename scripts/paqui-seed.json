@@ -1,0 +1,129 @@
+{
+ "name": "Paqui Sirvent Fotografía",
+ "niche": "Fotografía de recién nacido, embarazo, bebés y familia en Alicante",
+ "language": "es",
+ "tone": "- Cercana, cálida, de tú/vosotros. Emotiva. Frases cortas e impactantes.\n- Emojis con moderación: 🤍 📸 ✨ 💛\n- CTAs: \"Escríbeme\", \"¿Hablamos?\", \"617 044 777\", \"estudio@paquisirvent.com\"\n- Frases tipo: \"Créeme… esas fotos con el tiempo se vuelven absolutamente mágicas.\"",
+ "keywords": "fotógrafa recién nacido Alicante, fotógrafa newborn Alicante, sesión fotos bebés Alicante,\nfotografía infantil Alicante, fotógrafa embarazo Alicante, fotógrafa Sant Joan d'Alacant",
+ "knowledge": "## IDENTIDAD\n- Fotógrafa: Paqui Sirvent. Estudio en Sant Joan d'Alacant (Alicante), España\n- Web: paquisirvent.com | IG: @paquisirventfotografia | Email: estudio@paquisirvent.com | Tel: 617 044 777\n- Fotógrafa, ilustradora y madre. Viene del mundo de la moda. Apasionada de la pintura.\n- \"La fotografía y la pintura están totalmente conectadas, es pintar con luz.\"\n\n## SERVICIOS Y TARIFAS\n- Recién nacido (newborn): especialidad principal. 7-12 días de vida. 3 horas.\n  Experience 300€ (10 fotos+impresas) | Premium 450€ (15 fotos+álbum 20x20)\n  Seguimiento 0-4-8-12 meses: 750€ (34 fotos en 4 sesiones) | Pack Embarazo+Newborn: 480€\n- Embarazo/maternidad: estudio o exterior, armario de vestuario propio\n- Bebés, Smash Cake, Bautizos, Comunión, Familias, Marca Personal, Shooting de moda\n\n## ESTILO FOTOGRÁFICO\n- Natural, elegante, atemporal. Sin envolturas ni poses artificiales.\n- Tonos suaves, fibras naturales, escenarios limpios, luz suave.\n- No exceso de atrezzo. \"Mis fotos seguirán siendo bonitas y actuales con los años.\"\n\n## INTENCIÓN\nVENTA: informar → confianza → convertir en cliente. CTA clara en cada post.",
+ "instagram": {
+  "username": "@paquisirventfotografia",
+  "tone": "cercano",
+  "fixedHashtags": "#fotografiaalicante #fotografanewborn #paquisirvent",
+  "storyCTA": "👆 Enlace en bio para reservar"
+ },
+ "wp_url": "https://paquisirvent.com",
+ "topics": [
+  {
+   "name": "El embarazo: el mejor momento para una sesión de fotos",
+   "category": "Embarazo",
+   "season": null,
+   "angle": "Emocional + informativo. Por qué no esperar al nacimiento. CTA hacia pack embarazo+newborn.",
+   "position": 0
+  },
+  {
+   "name": "Todo sobre la sesión de recién nacido (guía completa)",
+   "category": "Bebés",
+   "season": null,
+   "angle": "Guía: cuándo hacerla, cómo prepararse, qué esperar. CTA para reservar.",
+   "position": 1
+  },
+  {
+   "name": "Seguimiento del primer año: captura cada etapa de tu bebé",
+   "category": "Bebés",
+   "season": null,
+   "angle": "Lo rápido que pasan los meses. Explicar el pack 0-4-8-12 meses.",
+   "position": 2
+  },
+  {
+   "name": "Sesión familiar con hermanitos: cómo preparar a toda la familia",
+   "category": "Familias",
+   "season": null,
+   "angle": "Cómo preparar a los mayores, orden de la sesión, por qué es irrepetible.",
+   "position": 3
+  },
+  {
+   "name": "Vestuario para la sesión de fotos: qué ponerse (y qué evitar)",
+   "category": "Consejos",
+   "season": null,
+   "angle": "Guía con consejos claros. Colores, tejidos, coordinación familiar. Mencionar armario de Paqui.",
+   "position": 4
+  },
+  {
+   "name": "¿Viene toda la familia a la sesión o solo el bebé?",
+   "category": "Consejos",
+   "season": null,
+   "angle": "Resolver la duda. Ventajas de incluir papá, hermanos, abuelos.",
+   "position": 5
+  },
+  {
+   "name": "Sesión de embarazo en primavera: luz natural y exteriores en Alicante",
+   "category": "Embarazo",
+   "season": "primavera",
+   "angle": "Exteriores primaverales en Alicante. Semana 28-34 ideal.",
+   "position": 6
+  },
+  {
+   "name": "La seguridad del bebé en una sesión newborn: lo que debes saber",
+   "category": "Bebés",
+   "season": null,
+   "angle": "Generar confianza. Formación de Paqui, protocolo de seguridad.",
+   "position": 7
+  },
+  {
+   "name": "Smash Cake en verano: ideas para el primer cumpleaños",
+   "category": "Bebés",
+   "season": "verano",
+   "angle": "Qué es, cómo funciona, ideas para verano.",
+   "position": 8
+  },
+  {
+   "name": "Fotos de familia en otoño en Alicante: la luz dorada perfecta",
+   "category": "Familias",
+   "season": "otoño",
+   "angle": "La luz otoñal en Alicante es perfecta para exteriores.",
+   "position": 9
+  },
+  {
+   "name": "Sesión de comunión en Alicante: guía completa para padres",
+   "category": "Comunión",
+   "season": "primavera",
+   "angle": "Cuándo reservar, qué esperar, opciones estudio/exterior.",
+   "position": 10
+  },
+  {
+   "name": "Sesión de recién nacido en Navidad: detalles cálidos e invernales",
+   "category": "Bebés",
+   "season": "invierno",
+   "angle": "Detalles navideños sutiles, tonos cálidos.",
+   "position": 11
+  },
+  {
+   "name": "Fotografía de marca personal en Alicante para emprendedoras",
+   "category": "Marca Personal",
+   "season": null,
+   "angle": "Por qué tener fotos profesionales. Público: mujeres emprendedoras.",
+   "position": 12
+  },
+  {
+   "name": "Bautizo en Alicante: cómo elegir al mejor fotógrafo",
+   "category": "Bautizos",
+   "season": null,
+   "angle": "Qué buscar, preguntas a hacer, qué diferencia a Paqui.",
+   "position": 13
+  },
+  {
+   "name": "Fotos de bebé en verano: ideas para sesiones lifestyle en Alicante",
+   "category": "Bebés",
+   "season": "verano",
+   "angle": "Sesiones lifestyle en exterior/playa. Luz dorada.",
+   "position": 14
+  },
+  {
+   "name": "Cómo preparar a los niños para una sesión de fotos sin estrés",
+   "category": "Consejos",
+   "season": null,
+   "angle": "Consejos prácticos para padres. Horario ideal, qué llevar.",
+   "position": 15
+  }
+ ]
+}
