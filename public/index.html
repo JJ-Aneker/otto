@@ -286,13 +286,9 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
     </span>
     <select id="wsSelect" class="ws-select" onchange="selectWorkspace(this.value)" title="Perfil activo"></select>
     <button class="badge ws-new" onclick="newWorkspace()" title="Crear perfil nuevo">＋ Perfil</button>
-    <select id="themeSelectTemp" class="ws-select" onchange="if(window.AppCore) AppCore.setTheme(this.value)" title="Tema" style="max-width:140px">
-      <option value="claro-sobrio">☀️ Claro</option>
-      <option value="oscuro">🌙 Oscuro</option>
-      <option value="calido">🔥 Cálido</option>
-    </select>
     <span class="badge orange" id="seasonBadge">🗓️ Sin temporada</span>
     <span class="badge green" id="historyBadge">📝 0 posts guardados</span>
+    <button class="badge" id="themeBtn" onclick="cycleTheme()" title="Cambiar tema" style="cursor:pointer">☀️ Tema</button>
   </div>
 </header>
 
@@ -2249,21 +2245,37 @@ function mediaPage(dir) {
 <script>
 // Gestión simple de temas sin app-core
 (function() {
+  const themes = ['claro-sobrio', 'oscuro', 'calido'];
+  const themeIcons = { 'claro-sobrio': '☀️', 'oscuro': '🌙', 'calido': '🔥' };
+  const themeNames = { 'claro-sobrio': 'Claro', 'oscuro': 'Oscuro', 'calido': 'Cálido' };
+
   function getTheme() {
     try { return localStorage.getItem('otto_theme') || 'claro-sobrio'; } catch { return 'claro-sobrio'; }
   }
+
   function setTheme(name) {
     document.documentElement.setAttribute('data-theme', name);
     try { localStorage.setItem('otto_theme', name); } catch {}
+    updateButton();
   }
+
+  function updateButton() {
+    const btn = document.getElementById('themeBtn');
+    if (btn) {
+      const current = getTheme();
+      btn.innerHTML = themeIcons[current] + ' ' + themeNames[current];
+    }
+  }
+
+  window.cycleTheme = function() {
+    const current = getTheme();
+    const idx = themes.indexOf(current);
+    const next = themes[(idx + 1) % themes.length];
+    setTheme(next);
+  };
+
   // Inicializar
   setTheme(getTheme());
-  // Selector temporal
-  const sel = document.getElementById('themeSelectTemp');
-  if (sel) {
-    sel.value = getTheme();
-    sel.onchange = function() { setTheme(this.value); };
-  }
 })();
 </script>
 </body>
