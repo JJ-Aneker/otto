@@ -2240,20 +2240,31 @@ function mediaPage(dir) {
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.js"></script>
-<script src="i18n-es.js"></script>
-<script src="app-core.js"></script>
-<!-- app-shell y home se cargarán después de integrar completamente -->
+<!-- Scripts nuevos se integrarán completamente después -->
+<!-- <script src="i18n-es.js"></script> -->
+<!-- <script src="app-core.js"></script> -->
 <!-- <script src="app-shell.js"></script> -->
 <!-- <script src="home.js"></script> -->
 <script src="saas.js"></script>
 <script>
-// Inicializar solo el tema (sin auth)
-if (window.AppCore) {
-  window.AppCore.initTheme();
-  // Sincronizar selector temporal
+// Gestión simple de temas sin app-core
+(function() {
+  function getTheme() {
+    try { return localStorage.getItem('otto_theme') || 'claro-sobrio'; } catch { return 'claro-sobrio'; }
+  }
+  function setTheme(name) {
+    document.documentElement.setAttribute('data-theme', name);
+    try { localStorage.setItem('otto_theme', name); } catch {}
+  }
+  // Inicializar
+  setTheme(getTheme());
+  // Selector temporal
   const sel = document.getElementById('themeSelectTemp');
-  if (sel) sel.value = window.AppCore.getTheme();
-}
+  if (sel) {
+    sel.value = getTheme();
+    sel.onchange = function() { setTheme(this.value); };
+  }
+})();
 </script>
 </body>
 </html>
