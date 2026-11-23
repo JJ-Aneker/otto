@@ -1,0 +1,244 @@
+/* ============================================================
+   Otto - Sistema de temas con variables CSS
+   Tres temas: claro-sobrio (default), oscuro, calido
+   Todos los colores, tipografías y espaciado aquí
+   ============================================================ */
+
+/* ── Tema base: claro-sobrio (default) ────────────────────── */
+:root,
+[data-theme="claro-sobrio"] {
+  /* Colores principales */
+  --color-bg: #faf7f4;
+  --color-bg-alt: #f5f0eb;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f0eb;
+
+  /* Texto */
+  --color-text: #2c2420;
+  --color-text-muted: #9c8878;
+  --color-text-inverse: #ffffff;
+
+  /* Acentos */
+  --color-primary: #2c2420;
+  --color-accent: #b5835a;
+  --color-accent-light: #e8d5c4;
+
+  /* Bordes y divisores */
+  --color-border: #e0d4c8;
+  --color-border-strong: #c4a882;
+
+  /* Estados */
+  --color-success: #5a8b6d;
+  --color-success-bg: #d4e8dc;
+  --color-warning: #b5935a;
+  --color-warning-bg: #f0e0cc;
+  --color-danger: #8b5a5a;
+  --color-danger-bg: #f0cccc;
+
+  /* Badges y etiquetas */
+  --color-badge-bg: #e8d5c4;
+  --color-badge-text: #8b6d52;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(44, 36, 32, 0.08);
+  --shadow-md: 0 2px 8px rgba(44, 36, 32, 0.12);
+  --shadow-lg: 0 4px 16px rgba(44, 36, 32, 0.16);
+}
+
+/* ── Tema oscuro ──────────────────────────────────────────── */
+[data-theme="oscuro"] {
+  /* Colores principales */
+  --color-bg: #1a1614;
+  --color-bg-alt: #242020;
+  --color-surface: #2c2826;
+  --color-surface-alt: #363230;
+
+  /* Texto */
+  --color-text: #e8e4e0;
+  --color-text-muted: #9c9088;
+  --color-text-inverse: #1a1614;
+
+  /* Acentos */
+  --color-primary: #d4b8a0;
+  --color-accent: #d4a574;
+  --color-accent-light: #4a3c30;
+
+  /* Bordes y divisores */
+  --color-border: #3c3634;
+  --color-border-strong: #544840;
+
+  /* Estados */
+  --color-success: #6aa885;
+  --color-success-bg: #2a3c32;
+  --color-warning: #d4b574;
+  --color-warning-bg: #3c3428;
+  --color-danger: #a86a6a;
+  --color-danger-bg: #3c2828;
+
+  /* Badges y etiquetas */
+  --color-badge-bg: #3c3230;
+  --color-badge-text: #c4a890;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Tema cálido ──────────────────────────────────────────── */
+[data-theme="calido"] {
+  /* Colores principales */
+  --color-bg: #fdf8f3;
+  --color-bg-alt: #fff3e8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fff8f0;
+
+  /* Texto */
+  --color-text: #2d1f14;
+  --color-text-muted: #8b6f5c;
+  --color-text-inverse: #ffffff;
+
+  /* Acentos */
+  --color-primary: #d4722a;
+  --color-accent: #e88438;
+  --color-accent-light: #ffd5b3;
+
+  /* Bordes y divisores */
+  --color-border: #f0d8c0;
+  --color-border-strong: #d8b090;
+
+  /* Estados */
+  --color-success: #5a8b6d;
+  --color-success-bg: #d8f0e0;
+  --color-warning: #d49a3a;
+  --color-warning-bg: #ffecd0;
+  --color-danger: #c45a4a;
+  --color-danger-bg: #ffd8d0;
+
+  /* Badges y etiquetas */
+  --color-badge-bg: #ffe8d0;
+  --color-badge-text: #9f5520;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(212, 114, 42, 0.08);
+  --shadow-md: 0 2px 8px rgba(212, 114, 42, 0.12);
+  --shadow-lg: 0 4px 16px rgba(212, 114, 42, 0.16);
+}
+
+/* ── Tipografía ───────────────────────────────────────────── */
+:root {
+  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-base: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+}
+
+/* ── Espaciado ────────────────────────────────────────────── */
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+
+  --gutter-mobile: 16px;
+  --gutter-desktop: 28px;
+}
+
+/* ── Radios y bordes ──────────────────────────────────────── */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 20px;
+  --radius-full: 9999px;
+
+  --border-width: 1px;
+  --border-width-thick: 2px;
+}
+
+/* ── Transiciones ─────────────────────────────────────────── */
+:root {
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* ── Layout (responsive) ──────────────────────────────────── */
+:root {
+  --content-max-width: 1200px;
+  --sidebar-width: 240px;
+  --bottombar-height: 64px;
+  --header-height: 72px;
+}
+
+/* ── Reset y base ─────────────────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-bg);
+  font-family: var(--font-primary);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  min-height: 100vh;
+}
+
+/* ── Media queries ────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --gutter-mobile: 16px;
+  }
+}
+
+@media (min-width: 769px) {
+  :root {
+    --sidebar-width: 240px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --sidebar-width: 260px;
+  }
+}
+
+/* ── Utilidades comunes ───────────────────────────────────── */
+.hidden {
+  display: none !important;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
