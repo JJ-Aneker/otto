@@ -124,6 +124,14 @@ function checkSession() { /* sustituido por boot() */ }
 async function onSignedIn(user) {
   currentUser = user;
   $('loginScreen').classList.add('hidden');
+
+  // Mostrar app shell
+  const appShell = document.getElementById('appShell');
+  if (appShell) {
+    appShell.classList.remove('hidden');
+    appShell.style.display = 'flex';
+  }
+
   $('userBadgeName').textContent = '👤 ' + (user.email || '');
   const [w, s] = await Promise.all([
     sb.from('workspaces').select('*').order('created_at'),
@@ -140,7 +148,10 @@ async function onSignedIn(user) {
   }
   let last = null; try { last = localStorage.getItem('agente_ws'); } catch { }
   await selectWorkspace((workspaces.find(x => x.id === last) || workspaces[0]).id);
-  if (!ws.knowledge && !ws.tone) { showPage('settings', document.querySelectorAll('.nav-btn')[1]); switchSettingsTab('profile', $('stab-profile')); }
+
+  // Ir a home si es primera vez, sino a home también
+  showPage('home');
+  if (window.renderHome) window.renderHome();
 }
 
 // ── Perfiles ─────────────────────────────────────────────────

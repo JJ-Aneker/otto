@@ -258,7 +258,7 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">Agente de Contenidos</div>
+    <div class="login-logo">Otto</div>
     <div class="login-sub" id="loginSub">Accede a tu cuenta</div>
     <div class="login-error" id="loginError"></div>
     <div class="input-group">
@@ -274,7 +274,86 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
   </div>
 </div>
 
-<header>
+<!-- APP SHELL -->
+<div id="appShell" class="hidden" style="display:flex;min-height:100vh">
+
+  <!-- SIDEBAR (Desktop) -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <h1 class="sidebar-logo">Otto</h1>
+      <p class="sidebar-tagline">Tu asistente de contenidos</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-page="home" onclick="showPage('home',this)">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Inicio</span>
+      </button>
+      <button class="nav-item" data-page="write" onclick="showPage('write',this)">
+        <span class="nav-icon">✍️</span>
+        <span class="nav-label">Otto escribe</span>
+      </button>
+      <button class="nav-item disabled" disabled>
+        <span class="nav-icon">👁️</span>
+        <span class="nav-label">Otto vigila</span>
+        <span class="nav-badge">Próximamente</span>
+      </button>
+      <button class="nav-item disabled" disabled>
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Otto cuenta</span>
+        <span class="nav-badge">Próximamente</span>
+      </button>
+      <button class="nav-item disabled" disabled>
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Otto ordena</span>
+        <span class="nav-badge">Próximamente</span>
+      </button>
+      <button class="nav-item disabled" disabled>
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Otto agenda</span>
+        <span class="nav-badge">Próximamente</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <select id="wsSelect" class="workspace-select" onchange="selectWorkspace(this.value)"></select>
+
+      <div class="user-menu">
+        <button class="user-menu-toggle" onclick="toggleUserMenuSidebar()">
+          <span id="userBadgeName">👤 Usuario</span>
+        </button>
+        <div class="user-menu-dropdown hidden" id="userMenuDropdown">
+          <div class="user-menu-item">
+            <label class="user-menu-label">Tema</label>
+            <button class="btn btn-secondary" onclick="cycleTheme()" id="themeBtn" style="width:100%;justify-content:center">☀️ Claro</button>
+          </div>
+          <button class="user-menu-button" onclick="doLogout()">Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- BOTTOMBAR (Mobile) -->
+  <nav class="app-bottombar">
+    <button class="bottombar-item active" data-page="home" onclick="showPage('home',this)">
+      <span class="bottombar-icon">🏠</span>
+      <span class="bottombar-label">Inicio</span>
+    </button>
+    <button class="bottombar-item" data-page="write" onclick="showPage('write',this)">
+      <span class="bottombar-icon">✍️</span>
+      <span class="bottombar-label">Otto escribe</span>
+    </button>
+    <button class="bottombar-item" onclick="toggleUserMenuSidebar()">
+      <span class="bottombar-icon">•••</span>
+      <span class="bottombar-label">Más</span>
+    </button>
+  </nav>
+
+  <!-- CONTENT AREA -->
+  <div class="app-content">
+
+<!-- LEGACY HEADER (mantener oculto por ahora) -->
+<header style="display:none">
   <div class="logo-area">
     <h1 id="wsTitle">Agente de contenidos</h1>
     <p>Agente de Contenidos · Blog WordPress</p>
@@ -292,8 +371,8 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
   </div>
 </header>
 
-<nav class="main-nav">
-  <button class="nav-btn active" onclick="showPage('generate',this)">✍️ Generar post</button>
+<nav class="main-nav" style="display:none">
+  <button class="nav-btn active" onclick="showPage('write',this)">✍️ Generar post</button>
   <button class="nav-btn" onclick="showPage('settings',this)">⚙️ Configuración</button>
   <button class="nav-btn" onclick="showPage('history',this)">📚 Historial</button>
   <button class="nav-btn" onclick="showPage('media',this)">🖼️ Imágenes</button>
@@ -301,8 +380,16 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
   <button class="nav-btn" onclick="showPage('help',this)">📖 Manual</button>
 </nav>
 
-<!-- PAGE: GENERATE -->
-<div class="page active" id="page-generate">
+<!-- PAGE: HOME / INICIO -->
+<div class="page active" id="page-home">
+  <div id="homeGreeting"></div>
+  <div id="homeAskOtto"></div>
+  <div id="homeProposals"></div>
+  <div id="homePulse"></div>
+</div>
+
+<!-- PAGE: OTTO ESCRIBE (antes "generate") -->
+<div class="page" id="page-write">
   <div class="two-col">
     <div>
       <div class="card">
@@ -871,6 +958,9 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
     </div>
   </div>
 </div>
+
+  </div><!-- /app-content -->
+</div><!-- /appShell -->
 
 <div class="toast" id="toast"></div>
 
@@ -2236,11 +2326,7 @@ function mediaPage(dir) {
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.js"></script>
-<!-- Scripts nuevos se integrarán completamente después -->
-<!-- <script src="i18n-es.js"></script> -->
-<!-- <script src="app-core.js"></script> -->
-<!-- <script src="app-shell.js"></script> -->
-<!-- <script src="home.js"></script> -->
+<script src="i18n-es.js"></script>
 <script src="saas.js"></script>
 <script>
 // Gestión simple de temas sin app-core
@@ -2277,6 +2363,149 @@ function mediaPage(dir) {
   // Inicializar
   setTheme(getTheme());
 })();
+
+// Función para toggle user menu
+function toggleUserMenuSidebar() {
+  const dropdown = document.getElementById('userMenuDropdown');
+  if (dropdown) dropdown.classList.toggle('hidden');
+}
+
+// Mejorar showPage para la nueva estructura
+const originalShowPage = showPage;
+showPage = function(pageId, btn) {
+  // Actualizar nav items del sidebar
+  document.querySelectorAll('.nav-item').forEach(item => {
+    if (item.getAttribute('data-page') === pageId) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  // Actualizar bottombar items
+  document.querySelectorAll('.bottombar-item').forEach(item => {
+    if (item.getAttribute('data-page') === pageId) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+
+  // Ocultar todas las páginas y mostrar la activa
+  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+  const targetPage = document.getElementById('page-' + pageId);
+  if (targetPage) {
+    targetPage.classList.add('active');
+
+    // Si es home, renderizar contenido
+    if (pageId === 'home' && window.renderHome) {
+      window.renderHome();
+    }
+  }
+};
+
+// Renderizar página home
+window.renderHome = function() {
+  const greeting = document.getElementById('homeGreeting');
+  const askOtto = document.getElementById('homeAskOtto');
+  const proposals = document.getElementById('homeProposals');
+  const pulse = document.getElementById('homePulse');
+
+  if (!greeting || !askOtto || !proposals || !pulse) return;
+
+  // Saludo
+  const hour = new Date().getHours();
+  const timeOfDay = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
+  const name = ws?.name || 'Profesional';
+  greeting.innerHTML = `
+    <h2 class="greeting-title">${timeOfDay}, ${name}</h2>
+    <p class="greeting-summary">Bienvenido a Otto</p>
+  `;
+
+  // Barra "Pídele algo a Otto"
+  askOtto.innerHTML = `
+    <div class="ask-otto-bar">
+      <input
+        type="text"
+        class="ask-otto-input"
+        placeholder="Escribe un post sobre..."
+        onkeypress="if(event.key==='Enter') handleAskOtto(this.value)"
+      />
+      <button class="ask-otto-button" onclick="handleAskOtto(document.querySelector('.ask-otto-input').value)">
+        →
+      </button>
+    </div>
+  `;
+
+  // Propuestas
+  const nextTopic = TOPICS.find(t => !t.done);
+  proposals.innerHTML = `
+    <h2 class="section-title">Otto propone hoy</h2>
+    <div class="proposals-grid">
+      <div class="proposal-card">
+        <div class="proposal-icon">📝</div>
+        <div class="proposal-content">
+          <h3 class="proposal-title">Siguiente tema</h3>
+          <p class="proposal-desc">${nextTopic ? nextTopic.name : 'Añade temas en Otto escribe'}</p>
+        </div>
+        ${nextTopic ? '<button class="proposal-button" onclick="showPage(\'write\')">Escribirlo</button>' : ''}
+      </div>
+      <div class="proposal-card">
+        <div class="proposal-icon">📄</div>
+        <div class="proposal-content">
+          <h3 class="proposal-title">Borradores</h3>
+          <p class="proposal-desc">${history.filter(h => h.status === 'draft').length} sin publicar</p>
+        </div>
+      </div>
+      <div class="proposal-card">
+        <div class="proposal-icon">🌸</div>
+        <div class="proposal-content">
+          <h3 class="proposal-title">Tema de temporada</h3>
+          <p class="proposal-desc">Ideas de ${new Date().getMonth() < 3 ? 'invierno' : new Date().getMonth() < 6 ? 'primavera' : new Date().getMonth() < 9 ? 'verano' : 'otoño'}</p>
+        </div>
+        <button class="proposal-button" onclick="showPage('write')">Escribir</button>
+      </div>
+    </div>
+  `;
+
+  // Pulso del negocio
+  pulse.innerHTML = `
+    <h2 class="section-title">Pulso del negocio</h2>
+    <div class="pulse-grid">
+      <div class="pulse-card">
+        <div class="pulse-value">${history.length}</div>
+        <div class="pulse-label">Posts creados</div>
+      </div>
+      <div class="pulse-card">
+        <div class="pulse-value">${history.filter(h => h.status === 'draft').length}</div>
+        <div class="pulse-label">Borradores</div>
+      </div>
+      <div class="pulse-card pulse-card-disabled">
+        <div class="pulse-value">—</div>
+        <div class="pulse-label">Visitas</div>
+        <div class="pulse-hint">Conecta Otto vigila</div>
+      </div>
+      <div class="pulse-card pulse-card-disabled">
+        <div class="pulse-value">—</div>
+        <div class="pulse-label">Facturas</div>
+        <div class="pulse-hint">Conecta Otto cuenta</div>
+      </div>
+    </div>
+  `;
+};
+
+function handleAskOtto(query) {
+  if (!query || !query.trim()) return;
+
+  const keywords = ['escribe', 'escrib', 'post', 'blog', 'artículo', 'articulo'];
+  const isWrite = keywords.some(kw => query.toLowerCase().startsWith(kw));
+
+  if (isWrite) {
+    showPage('write');
+  } else {
+    alert('Aún aprendo; por ahora sé escribir posts. Escribe "post sobre..." o "escribe..."');
+  }
+}
 </script>
 </body>
 </html>
