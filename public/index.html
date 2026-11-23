@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agente de contenidos</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="app-layout.css">
 <style>
 :root {
   --cream:#faf7f4;--warm-white:#f5f0eb;--blush:#e8d5c4;
@@ -284,6 +286,11 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
     </span>
     <select id="wsSelect" class="ws-select" onchange="selectWorkspace(this.value)" title="Perfil activo"></select>
     <button class="badge ws-new" onclick="newWorkspace()" title="Crear perfil nuevo">＋ Perfil</button>
+    <select id="themeSelectTemp" class="ws-select" onchange="if(window.AppCore) AppCore.setTheme(this.value)" title="Tema" style="max-width:140px">
+      <option value="claro-sobrio">☀️ Claro</option>
+      <option value="oscuro">🌙 Oscuro</option>
+      <option value="calido">🔥 Cálido</option>
+    </select>
     <span class="badge orange" id="seasonBadge">🗓️ Sin temporada</span>
     <span class="badge green" id="historyBadge">📝 0 posts guardados</span>
   </div>
@@ -2233,6 +2240,19 @@ function mediaPage(dir) {
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.js"></script>
+<script src="i18n-es.js"></script>
+<script src="app-core.js"></script>
+<script src="app-shell.js"></script>
+<script src="home.js"></script>
 <script src="saas.js"></script>
+<script>
+// Inicializar tema al cargar
+if (window.AppCore) {
+  AppCore.initTheme();
+  // Sincronizar selector temporal
+  const sel = document.getElementById('themeSelectTemp');
+  if (sel) sel.value = AppCore.getTheme();
+}
+</script>
 </body>
 </html>
