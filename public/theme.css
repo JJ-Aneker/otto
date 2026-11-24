@@ -1,244 +1,186 @@
 /* ============================================================
-   Otto - Sistema de temas con variables CSS
-   Tres temas: claro-sobrio (default), oscuro, calido
-   Todos los colores, tipografías y espaciado aquí
+   Otto · tokens de diseño
+   Aquí viven TODOS los colores, tipos, espacios y radios.
+   Los componentes solo usan estas variables, nunca valores fijos.
+
+   Temas (solo cambian colores y la letra de los títulos):
+     claro        → por defecto
+     oscuro
+     corporativo  → tonos cálidos, títulos con serif
    ============================================================ */
 
-/* ── Tema base: claro-sobrio (default) ────────────────────── */
+/* ── Tema claro ───────────────────────────────────────────── */
 :root,
-[data-theme="claro-sobrio"] {
-  /* Colores principales */
-  --color-bg: #faf7f4;
-  --color-bg-alt: #f5f0eb;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f5f0eb;
+[data-theme="claro"] {
+  color-scheme: light;
 
-  /* Texto */
-  --color-text: #2c2420;
-  --color-text-muted: #9c8878;
-  --color-text-inverse: #ffffff;
+  --bg: #ffffff;               /* fondo de la zona de trabajo */
+  --bg-subtle: #f7f7f8;        /* menú lateral, cabeceras de tabla */
+  --surface: #ffffff;          /* paneles, menús, campos */
+  --surface-hover: #f1f1f3;
+  --surface-active: #e9e9ed;
 
-  /* Acentos */
-  --color-primary: #2c2420;
-  --color-accent: #b5835a;
-  --color-accent-light: #e8d5c4;
+  --border: #e6e6ea;
+  --border-strong: #cfcfd6;
 
-  /* Bordes y divisores */
-  --color-border: #e0d4c8;
-  --color-border-strong: #c4a882;
+  --text: #1c1c20;
+  --text-muted: #62666d;
 
-  /* Estados */
-  --color-success: #5a8b6d;
-  --color-success-bg: #d4e8dc;
-  --color-warning: #b5935a;
-  --color-warning-bg: #f0e0cc;
-  --color-danger: #8b5a5a;
-  --color-danger-bg: #f0cccc;
+  --accent: #4a56c4;           /* relleno de botón principal */
+  --accent-hover: #3f4ab0;
+  --accent-contrast: #ffffff;  /* texto sobre el relleno */
+  --accent-text: #4a56c4;      /* enlaces e iconos activos */
+  --accent-subtle: #eef0fc;    /* fila o chip seleccionado */
 
-  /* Badges y etiquetas */
-  --color-badge-bg: #e8d5c4;
-  --color-badge-text: #8b6d52;
+  --success: #1a7f4b;
+  --success-subtle: #e6f4ec;
+  --warning: #956100;
+  --warning-subtle: #fbf1db;
+  --danger: #c0332d;
+  --danger-subtle: #fbeae9;
 
-  /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(44, 36, 32, 0.08);
-  --shadow-md: 0 2px 8px rgba(44, 36, 32, 0.12);
-  --shadow-lg: 0 4px 16px rgba(44, 36, 32, 0.16);
+  --code-bg: #f4f4f6;
+  --overlay: rgba(16, 16, 20, 0.4);
+  --shadow-pop: 0 8px 24px rgba(16, 16, 20, 0.1);
+
+  --font-display: var(--font-sans);
+  --title-size: 22px;
 }
 
 /* ── Tema oscuro ──────────────────────────────────────────── */
 [data-theme="oscuro"] {
-  /* Colores principales */
-  --color-bg: #1a1614;
-  --color-bg-alt: #242020;
-  --color-surface: #2c2826;
-  --color-surface-alt: #363230;
+  color-scheme: dark;
 
-  /* Texto */
-  --color-text: #e8e4e0;
-  --color-text-muted: #9c9088;
-  --color-text-inverse: #1a1614;
+  --bg: #0f1012;
+  --bg-subtle: #141518;
+  --surface: #17181b;
+  --surface-hover: #1e1f23;
+  --surface-active: #26282d;
 
-  /* Acentos */
-  --color-primary: #d4b8a0;
-  --color-accent: #d4a574;
-  --color-accent-light: #4a3c30;
+  --border: #26282c;
+  --border-strong: #3a3c43;
 
-  /* Bordes y divisores */
-  --color-border: #3c3634;
-  --color-border-strong: #544840;
+  --text: #ececef;
+  --text-muted: #9a9ea8;
 
-  /* Estados */
-  --color-success: #6aa885;
-  --color-success-bg: #2a3c32;
-  --color-warning: #d4b574;
-  --color-warning-bg: #3c3428;
-  --color-danger: #a86a6a;
-  --color-danger-bg: #3c2828;
+  --accent: #5b67d4;
+  --accent-hover: #6b76dd;
+  --accent-contrast: #ffffff;
+  --accent-text: #a0a8f2;
+  --accent-subtle: #1f2237;
 
-  /* Badges y etiquetas */
-  --color-badge-bg: #3c3230;
-  --color-badge-text: #c4a890;
+  --success: #5cc48b;
+  --success-subtle: #16281f;
+  --warning: #e0b050;
+  --warning-subtle: #2b2312;
+  --danger: #ef7a73;
+  --danger-subtle: #2d1a19;
 
-  /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --code-bg: #0b0b0d;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-/* ── Tema cálido ──────────────────────────────────────────── */
-[data-theme="calido"] {
-  /* Colores principales */
-  --color-bg: #fdf8f3;
-  --color-bg-alt: #fff3e8;
-  --color-surface: #ffffff;
-  --color-surface-alt: #fff8f0;
+/* ── Tema corporativo (cálido, informe) ───────────────────── */
+[data-theme="corporativo"] {
+  color-scheme: light;
 
-  /* Texto */
-  --color-text: #2d1f14;
-  --color-text-muted: #8b6f5c;
-  --color-text-inverse: #ffffff;
+  --bg: #f6f2e9;
+  --bg-subtle: #ece6d8;
+  --surface: #fffdf7;
+  --surface-hover: #f1ebdd;
+  --surface-active: #e6dec9;
 
-  /* Acentos */
-  --color-primary: #d4722a;
-  --color-accent: #e88438;
-  --color-accent-light: #ffd5b3;
+  --border: #ddd4c0;
+  --border-strong: #c4b8a0;
 
-  /* Bordes y divisores */
-  --color-border: #f0d8c0;
-  --color-border-strong: #d8b090;
+  --text: #2b2218;
+  --text-muted: #6b5e4d;
 
-  /* Estados */
-  --color-success: #5a8b6d;
-  --color-success-bg: #d8f0e0;
-  --color-warning: #d49a3a;
-  --color-warning-bg: #ffecd0;
-  --color-danger: #c45a4a;
-  --color-danger-bg: #ffd8d0;
+  --accent: #7a4e22;
+  --accent-hover: #653f19;
+  --accent-contrast: #fffdf7;
+  --accent-text: #7a4e22;
+  --accent-subtle: #ede1cd;
 
-  /* Badges y etiquetas */
-  --color-badge-bg: #ffe8d0;
-  --color-badge-text: #9f5520;
+  --success: #2f6b45;
+  --success-subtle: #e3eedf;
+  --warning: #8a5a00;
+  --warning-subtle: #f4e6c8;
+  --danger: #a63a2a;
+  --danger-subtle: #f3dcd5;
 
-  /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(212, 114, 42, 0.08);
-  --shadow-md: 0 2px 8px rgba(212, 114, 42, 0.12);
-  --shadow-lg: 0 4px 16px rgba(212, 114, 42, 0.16);
+  --code-bg: #ece6d8;
+  --overlay: rgba(43, 34, 24, 0.4);
+  --shadow-pop: 0 8px 24px rgba(43, 34, 24, 0.14);
+
+  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --title-size: 28px;
 }
 
 /* ── Tipografía ───────────────────────────────────────────── */
 :root {
-  --font-primary: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  --font-size-xs: 10px;
-  --font-size-sm: 11px;
-  --font-size-base: 13px;
-  --font-size-md: 14px;
-  --font-size-lg: 16px;
-  --font-size-xl: 18px;
-  --font-size-2xl: 20px;
-  --font-size-3xl: 24px;
+  --fs-xs: 12px;   /* mínimo permitido */
+  --fs-sm: 13px;
+  --fs-md: 14px;
+  --fs-lg: 16px;
+  --fs-xl: 20px;
+  --fs-2xl: 24px;
 
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
 
-  --line-height-tight: 1.2;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.7;
+  --lh-tight: 1.25;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.7;
 }
 
-/* ── Espaciado ────────────────────────────────────────────── */
+/* ── Espaciado (múltiplos de 4) ───────────────────────────── */
 :root {
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
-  --space-xl: 24px;
-  --space-2xl: 32px;
-  --space-3xl: 48px;
-
-  --gutter-mobile: 16px;
-  --gutter-desktop: 28px;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
 }
 
 /* ── Radios y bordes ──────────────────────────────────────── */
 :root {
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-pill: 20px;
-  --radius-full: 9999px;
-
-  --border-width: 1px;
-  --border-width-thick: 2px;
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-full: 999px;
+  --bw: 1px;
 }
 
-/* ── Transiciones ─────────────────────────────────────────── */
+/* ── Movimiento ───────────────────────────────────────────── */
 :root {
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.2s ease;
-  --transition-slow: 0.3s ease;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
 }
 
-/* ── Layout (responsive) ──────────────────────────────────── */
+/* ── Estructura ───────────────────────────────────────────── */
 :root {
-  --content-max-width: 1200px;
-  --sidebar-width: 240px;
-  --bottombar-height: 64px;
-  --header-height: 72px;
+  --sidebar-w: 240px;
+  --content-w: 1120px;
+  --gutter: 32px;
+  --tabbar-h: 56px;
 }
 
-/* ── Reset y base ─────────────────────────────────────────── */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: var(--color-bg);
-  font-family: var(--font-primary);
-  color: var(--color-text);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
-  min-height: 100vh;
-}
-
-/* ── Media queries ────────────────────────────────────────── */
 @media (max-width: 768px) {
   :root {
-    --gutter-mobile: 16px;
+    --gutter: 16px;
+    --title-size: 20px;
   }
-}
-
-@media (min-width: 769px) {
-  :root {
-    --sidebar-width: 240px;
+  [data-theme="corporativo"] {
+    --title-size: 24px;
   }
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --sidebar-width: 260px;
-  }
-}
-
-/* ── Utilidades comunes ───────────────────────────────────── */
-.hidden {
-  display: none !important;
-}
-
-.text-muted {
-  color: var(--color-text-muted);
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-uppercase {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }

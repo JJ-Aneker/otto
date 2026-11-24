@@ -132,7 +132,8 @@ async function onSignedIn(user) {
     appShell.style.display = 'flex';
   }
 
-  $('userBadgeName').textContent = '👤 ' + (user.email || '');
+  $('userBadgeName').textContent = user.email || '';
+  if (window.syncChrome) syncChrome();
   const [w, s] = await Promise.all([
     sb.from('workspaces').select('*').order('created_at'),
     sb.from('secrets').select('id, kind, key_hint')
@@ -194,7 +195,7 @@ async function selectWorkspace(id) {
   try { renderCalList(); } catch { }
   allMedia = []; filteredMedia = []; selectedMedia = [];
   try { renderMediaGrid(); } catch { }
-  try { $('resultBody').classList.remove('visible'); $('outputTabs').style.display = 'none'; $('outputActions').style.display = 'none'; $('emptyState').style.display = 'flex'; } catch { }
+  try { $('resultBody').classList.remove('visible'); $('outputTabs').style.display = 'none'; $('outputActions').style.display = 'none'; $('publishHeadBtn').style.display = 'none'; $('emptyState').style.display = 'flex'; } catch { }
   const next = new Date(); next.setDate(next.getDate() + 14); $('wpSchedule').value = next.toISOString().slice(0, 16);
 }
 
@@ -205,9 +206,9 @@ async function newWorkspace() {
   if (error) { showToast('Error: ' + error.message, 'error'); return; }
   workspaces.push(data);
   await selectWorkspace(data.id);
-  showPage('settings', document.querySelectorAll('.nav-btn')[1]);
+  showPage('settings');
   switchSettingsTab('profile', $('stab-profile'));
-  showToast('✓ Perfil creado. Completa su información.', 'success');
+  showToast('Perfil creado. Completa su información.', 'success');
 }
 
 async function deleteWorkspace() {
@@ -261,8 +262,8 @@ async function saveProfile() {
   try {
     await updateWs({ name, niche: $('pfNiche').value.trim() || null, language: $('pfLanguage').value, tone: $('pfTone').value.trim() || null, knowledge: $('pfKnowledge').value.trim() || null, keywords: $('pfKeywords').value.trim() || null });
     KB = buildKB(); renderWsSelect();
-    showWPStatus('pfStatus', '✓ Perfil guardado', 'success');
-  } catch (e) { showWPStatus('pfStatus', '✗ ' + e.message, 'error'); }
+    showWPStatus('pfStatus', 'Perfil guardado', 'success');
+  } catch (e) { showWPStatus('pfStatus', '' + e.message, 'error'); }
 }
 
 async function saveAI() {
@@ -275,8 +276,8 @@ async function saveAI() {
     await updateWs(patch);
     if (key && oldId && oldId !== ws.ai_secret_id) await deleteSecret(oldId);
     $('aiKey').value = ''; onProviderChange(true);
-    showWPStatus('aiStatus', '✓ Guardado. Usa "Probar conexión" para comprobar la clave.', 'success');
-  } catch (e) { showWPStatus('aiStatus', '✗ ' + e.message, 'error'); }
+    showWPStatus('aiStatus', 'Guardado. Usa "Probar conexión" para comprobar la clave.', 'success');
+  } catch (e) { showWPStatus('aiStatus', '' + e.message, 'error'); }
 }
 
 async function testAI() {
@@ -285,9 +286,9 @@ async function testAI() {
     const r = await apiFetch('/api/generate', { method: 'POST', body: JSON.stringify({ messages: [{ role: 'user', content: 'Responde solo: OK' }], max_tokens: 20, label: 'Prueba de conexión' }) });
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Error');
-    showWPStatus('aiStatus', `✓ Funciona (${d.provider} · ${d.model})`, 'success');
+    showWPStatus('aiStatus', `Funciona (${d.provider} · ${d.model})`, 'success');
     loadUsage().then(renderTokenStats);
-  } catch (e) { showWPStatus('aiStatus', '✗ ' + e.message, 'error'); }
+  } catch (e) { showWPStatus('aiStatus', '' + e.message, 'error'); }
 }
 
 // ── WordPress (la contraseña vive cifrada en el servidor) ────
@@ -301,8 +302,8 @@ async function saveWPConfig() {
     if (pass && oldId && oldId !== ws.wp_secret_id) await deleteSecret(oldId);
     wpConfig = { url, user, pass: '' }; jwtToken = null; $('wpPass').value = '';
     const wh = secretsInfo[ws.wp_secret_id]; $('wpPassHint').textContent = wh ? `Contraseña guardada (${wh.key_hint})` : 'Aún no hay contraseña guardada';
-    showWPStatus('wpStatus', '✓ Configuración guardada', 'success');
-  } catch (e) { showWPStatus('wpStatus', '✗ ' + e.message, 'error'); }
+    showWPStatus('wpStatus', 'Configuración guardada', 'success');
+  } catch (e) { showWPStatus('wpStatus', '' + e.message, 'error'); }
 }
 
 async function getJWTToken() {
@@ -326,14 +327,14 @@ async function testWPConnection() {
   try {
     jwtToken = null; await getJWTToken();
     const d = await wpProxy('users/me');
-    if (d.name || d.slug) showWPStatus('wpStatus', `✓ Conectado como: ${d.name || ws.wp_user}`, 'success');
-    else showWPStatus('wpStatus', `✗ ${d.message || JSON.stringify(d)}`, 'error');
-  } catch (e) { showWPStatus('wpStatus', `✗ ${e.message}`, 'error'); }
+    if (d.name || d.slug) showWPStatus('wpStatus', `Conectado como: ${d.name || ws.wp_user}`, 'success');
+    else showWPStatus('wpStatus', `${d.message || JSON.stringify(d)}`, 'error');
+  } catch (e) { showWPStatus('wpStatus', `${e.message}`, 'error'); }
 }
 
 async function publishToWordPress() {
   if (!generatedData) { showToast('No hay post generado', 'error'); return; }
-  if (!ws.wp_url || !ws.wp_secret_id) { showWPStatus('publishStatus', '⚠️ Configura WordPress en este perfil', 'error'); return; }
+  if (!ws.wp_url || !ws.wp_secret_id) { showWPStatus('publishStatus', 'Configura WordPress en este perfil', 'error'); return; }
   const status = $('wpStatus2').value;
   const postBody = { title: generatedData.titulo_seo || '', content: generatedData.post_html || '', slug: generatedData.slug || '', excerpt: generatedData.meta_descripcion || '', status };
   if (status === 'future') { const sc = $('wpSchedule').value; if (sc) postBody.date = new Date(sc).toISOString(); }
@@ -344,15 +345,15 @@ async function publishToWordPress() {
     if (d.id) {
       const link = d.link || `${ws.wp_url}/?p=${d.id}`;
       const sl = status === 'publish' ? 'publicado' : status === 'future' ? 'programado' : 'guardado como borrador';
-      showWPStatus('publishStatus', `✓ Post ${sl}. <a href="${link}" target="_blank" style="color:var(--success);text-decoration:underline">Ver en WordPress →</a>`, 'success');
+      showWPStatus('publishStatus', `Post ${sl}. <a href="${link}" target="_blank" style="color:var(--success);text-decoration:underline">Ver en WordPress →</a>`, 'success');
       if (status === 'publish') {
         generatedData.status = 'published'; generatedData.wpLink = link;
         const i = history.findIndex(h => (h.dbId && h.dbId === generatedData.dbId) || h.titulo_seo === generatedData.titulo_seo);
         if (i >= 0) { generatedData.dbId = history[i].dbId; history[i] = generatedData; await savePostToDB(generatedData); renderHistory(); }
       }
-      showToast('✓ Enviado a WordPress', 'success');
-    } else showWPStatus('publishStatus', `✗ Error: ${d.message || d.error || JSON.stringify(d)}`, 'error');
-  } catch (e) { showWPStatus('publishStatus', `✗ ${e.message}`, 'error'); }
+      showToast('Enviado a WordPress', 'success');
+    } else showWPStatus('publishStatus', `Error: ${d.message || d.error || JSON.stringify(d)}`, 'error');
+  } catch (e) { showWPStatus('publishStatus', `${e.message}`, 'error'); }
   finally { btn.disabled = false; btn.textContent = 'Publicar en WordPress'; }
 }
 
@@ -362,8 +363,8 @@ async function saveIGConfig() {
     username: $('igUsername')?.value || '', tone: $('igTone')?.value || 'cercano',
     fixedHashtags: $('igFixedHashtags')?.value || '', storyCTA: $('igStoryCTA')?.value || ''
   };
-  try { await updateWs({ instagram: igConfig }); showWPStatus('igConfigStatus', '✓ Configuración guardada', 'success'); }
-  catch (e) { showWPStatus('igConfigStatus', '✗ ' + e.message, 'error'); }
+  try { await updateWs({ instagram: igConfig }); showWPStatus('igConfigStatus', 'Configuración guardada', 'success'); }
+  catch (e) { showWPStatus('igConfigStatus', '' + e.message, 'error'); }
 }
 function loadIGConfig() {
   if (!$('igUsername')) return;
@@ -419,7 +420,7 @@ async function saveToHistory() {
     if (idx >= 0) history[idx] = generatedData; else history.unshift(generatedData);
     const t = calTopics.find(x => x.id === generatedData.topicId);
     if (t && !t.done) { t.done = true; saveCalTopics(); }
-    updateBadges(); showToast('✓ Post guardado', 'success');
+    updateBadges(); showToast('Post guardado', 'success');
   } catch (e) { showToast('Error guardando: ' + e.message, 'error'); }
 }
 
@@ -456,10 +457,10 @@ function renderTokenStats() {
     hist.innerHTML = usageRows.slice(0, 20).map(r =>
       `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.label || 'Generación')}</span>
-        <span style="color:var(--muted);margin:0 12px;white-space:nowrap">${tok(r).toLocaleString()} tokens</span>
+        <span style="color:var(--text-muted);margin:0 12px;white-space:nowrap">${tok(r).toLocaleString()} tokens</span>
         <span style="color:var(--accent);white-space:nowrap">${rowCost(r).toFixed(4)}€</span>
       </div>`).join('');
-  } else if (hist) hist.innerHTML = '<span style="color:var(--muted)">Aún no hay datos. Genera un post para empezar a registrar el consumo.</span>';
+  } else if (hist) hist.innerHTML = '<span style="color:var(--text-muted)">Aún no hay datos. Genera un post para empezar a registrar el consumo.</span>';
 }
 function resetTokenStats() { showToast('El consumo se guarda en el servidor y no se puede borrar'); }
 

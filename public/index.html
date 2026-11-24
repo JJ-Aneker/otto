@@ -3,255 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agente de contenidos</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Otto</title>
+<script>
+/* Aplica el tema guardado antes de pintar, para evitar parpadeos */
+try {
+  var t = localStorage.getItem('otto_theme');
+  t = ({ 'claro-sobrio': 'claro', 'calido': 'corporativo' })[t] || t;
+  if (['claro', 'oscuro', 'corporativo'].indexOf(t) === -1) t = 'claro';
+  document.documentElement.setAttribute('data-theme', t);
+} catch (e) { document.documentElement.setAttribute('data-theme', 'claro'); }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="theme.css">
 <link rel="stylesheet" href="app-layout.css">
-<style>
-:root {
-  --cream:#faf7f4;--warm-white:#f5f0eb;--blush:#e8d5c4;
-  --taupe:#c4a882;--brown:#8b6d52;--dark:#2c2420;
-  --muted:#9c8878;--border:#e0d4c8;--accent:#b5835a;
-  --success:#5a8b6d;--warning:#b5935a;--danger:#8b5a5a;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--dark);min-height:100vh;}
-
-header{background:var(--warm-white);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-.logo-area h1{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;letter-spacing:.05em;}
-.logo-area p{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
-.header-badges{display:flex;gap:7px;flex-wrap:wrap;}
-.badge{background:var(--blush);color:var(--brown);font-size:11px;font-weight:500;letter-spacing:.05em;padding:5px 11px;border-radius:20px;white-space:nowrap;}
-.ws-select{background:var(--blush);color:var(--brown);border:none;font-size:11px;font-weight:500;padding:5px 11px;border-radius:20px;max-width:200px;cursor:pointer}
-.ws-new{border:none;cursor:pointer;font-family:inherit}
-.login-toggle{background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;margin-top:12px;width:100%}
-.badge.green{background:#d4e8dc;color:var(--success);}
-.badge.orange{background:#f0e0cc;color:var(--warning);}
-
-.main-nav{background:white;border-bottom:1px solid var(--border);display:flex;padding:0 28px;gap:2px;overflow-x:auto;}
-.nav-btn{padding:11px 16px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif;letter-spacing:.04em;transition:all .2s;white-space:nowrap;}
-.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
-.nav-btn:hover:not(.active){color:var(--brown);}
-
-.page{display:none;padding:24px 28px;max-width:1200px;margin:0 auto;}
-.page.active{display:block;}
-.two-col{display:grid;grid-template-columns:310px 1fr;gap:22px;align-items:start;}
-
-.card{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-.card-header{background:var(--warm-white);padding:15px 18px;border-bottom:1px solid var(--border);}
-.card-header h2{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;}
-.card-header p{font-size:11px;color:var(--muted);margin-top:2px;}
-.card-body{padding:16px 18px;}
-
-.tabs{display:flex;gap:6px;margin-bottom:14px;}
-.tab{flex:1;padding:8px 10px;border:1px solid var(--border);background:transparent;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;}
-.tab.active{background:var(--dark);border-color:var(--dark);color:white;}
-.tab:hover:not(.active){border-color:var(--taupe);color:var(--brown);}
-
-.season-row{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;}
-.season-btn{padding:5px 11px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;color:var(--muted);transition:all .2s;}
-.season-btn.active{background:var(--blush);border-color:var(--taupe);color:var(--brown);}
-
-.topic-grid{display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;padding-right:3px;}
-.topic-card{padding:10px 13px;border:1px solid var(--border);border-radius:9px;cursor:pointer;transition:all .2s;background:var(--cream);position:relative;}
-.topic-card:hover{border-color:var(--taupe);background:var(--warm-white);transform:translateX(2px);}
-.topic-card.selected{border-color:var(--accent);background:#fdf5ef;}
-.topic-card.done{opacity:.5;}
-.topic-card .tn{font-size:12px;font-weight:500;color:var(--dark);line-height:1.3;padding-right:40px;}
-.topic-card .tm{font-size:10px;color:var(--muted);margin-top:3px;}
-.topic-card .tbadge{position:absolute;top:9px;right:9px;font-size:9px;padding:2px 6px;border-radius:9px;font-weight:600;}
-.topic-card .tbadge.season{background:var(--blush);color:var(--brown);}
-.topic-card .tbadge.done-lbl{background:#d4e8dc;color:var(--success);}
-
-.input-group{margin-bottom:12px;}
-.input-group label{display:block;font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
-.input-group input,.input-group textarea,.input-group select{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--dark);background:var(--cream);outline:none;transition:border-color .2s;resize:vertical;}
-.input-group input:focus,.input-group textarea:focus,.input-group select:focus{border-color:var(--taupe);}
-
-.btn{padding:9px 16px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;border:none;}
-.btn-primary{background:var(--dark);color:white;}
-.btn-primary:hover:not(:disabled){background:var(--accent);transform:translateY(-1px);}
-.btn-primary:disabled{opacity:.45;cursor:not-allowed;}
-.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--muted);}
-.btn-secondary:hover{border-color:var(--taupe);color:var(--brown);}
-.btn-success{background:var(--success);color:white;}
-.btn-success:hover:not(:disabled){background:#4a7a5d;}
-.btn-success:disabled{opacity:.45;cursor:not-allowed;}
-.btn-full{width:100%;padding:13px;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;letter-spacing:.05em;margin-top:4px;}
-
-.output-card{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;min-height:560px;}
-.output-header{background:var(--warm-white);padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.output-header h2{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;}
-.out-actions{display:flex;gap:6px;flex-wrap:wrap;}
-.output-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 18px;background:white;overflow-x:auto;}
-.output-tab{padding:10px 13px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;white-space:nowrap;}
-.output-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 36px;text-align:center;}
-.empty-icon{font-size:42px;margin-bottom:14px;opacity:.33;}
-.empty-state h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;margin-bottom:6px;}
-.empty-state p{font-size:12px;color:var(--muted);line-height:1.6;max-width:260px;}
-.loading-state{display:none;flex-direction:column;align-items:center;justify-content:center;padding:70px 36px;text-align:center;}
-.loading-state.visible{display:flex;}
-.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.loading-state h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;margin-bottom:5px;}
-.loading-state p{font-size:12px;color:var(--muted);}
-
-.result-body{display:none;padding:20px;}
-.result-body.visible{display:block;}
-.seo-block{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:15px 17px;margin-bottom:18px;}
-.seo-block h3{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:11px;}
-.seo-row{display:flex;flex-direction:column;gap:9px;}
-.seo-item label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--taupe);display:block;margin-bottom:2px;}
-.seo-item .sv{font-size:13px;color:var(--dark);line-height:1.4;}
-.seo-item .sv.title-val{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;}
-.seo-item .sv.slug-val{font-family:monospace;font-size:11px;color:var(--accent);background:#fdf5ef;padding:3px 7px;border-radius:4px;}
-.post-text{font-size:13px;line-height:1.85;color:#3d2e26;white-space:pre-wrap;}
-.html-view{background:#1e1a17;border-radius:9px;padding:16px;overflow-x:auto;}
-.html-view pre{font-family:'Courier New',monospace;font-size:11px;color:#d4c5b5;white-space:pre-wrap;line-height:1.6;}
-
-.wp-status{padding:9px 13px;border-radius:8px;font-size:12px;font-weight:500;margin-top:8px;display:none;}
-.wp-status.success{background:#d4e8dc;color:var(--success);display:block;}
-.wp-status.error{background:#e8d4d4;color:var(--danger);display:block;}
-.wp-status.info{background:#f0e8dc;color:var(--warning);display:block;}
-.wp-divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
-.wp-instructions{background:var(--cream);border:1px dashed var(--border);border-radius:9px;padding:13px;font-size:11px;line-height:1.7;color:var(--muted);}
-.wp-instructions strong{color:var(--brown);}
-.wp-instructions code{background:white;border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-family:monospace;font-size:10px;color:var(--accent);}
-
-.stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
-.stat-card{background:white;border:1px solid var(--border);border-radius:10px;padding:14px 18px;flex:1;min-width:110px;}
-.stat-card .stat-num{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--accent);}
-.stat-card .stat-label{font-size:11px;color:var(--muted);margin-top:1px;}
-.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
-.history-card{background:white;border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .2s;}
-.history-card:hover{border-color:var(--taupe);box-shadow:0 2px 10px rgba(139,109,82,.1);}
-.hc-date{font-size:10px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px;}
-.hc-title{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;line-height:1.3;margin-bottom:6px;}
-.hc-meta{font-size:11px;color:var(--muted);margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;}
-.hc-tag{background:var(--blush);color:var(--brown);padding:2px 7px;border-radius:9px;font-size:10px;font-weight:500;}
-.hc-actions{display:flex;gap:6px;flex-wrap:wrap;}
-.history-empty{text-align:center;padding:50px;color:var(--muted);grid-column:1/-1;}
-
-.toast{position:fixed;bottom:22px;right:22px;background:var(--dark);color:white;padding:10px 16px;border-radius:9px;font-size:12px;font-weight:500;transform:translateY(70px);opacity:0;transition:all .3s;pointer-events:none;z-index:999;max-width:280px;}
-.toast.show{transform:translateY(0);opacity:1;}
-.toast.success-toast{background:var(--success);}
-.toast.error-toast{background:var(--danger);}
-
-::-webkit-scrollbar{width:3px;height:3px;}
-::-webkit-scrollbar-thumb{background:var(--blush);border-radius:4px;}
-
-/* MEDIA PAGE */
-.media-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
-.media-search{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;background:var(--cream);outline:none;color:var(--dark);}
-.media-search:focus{border-color:var(--taupe);}
-.media-filter{display:flex;gap:6px;flex-wrap:wrap;}
-.media-filter button{padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;color:var(--muted);transition:all .2s;}
-.media-filter button.active{background:var(--blush);border-color:var(--taupe);color:var(--brown);}
-.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
-.media-item{border:2px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .2s;background:white;position:relative;}
-.media-item:hover{border-color:var(--taupe);transform:translateY(-2px);box-shadow:0 4px 12px rgba(139,109,82,.15);}
-.media-item.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(181,131,90,.2);}
-.media-item img{width:100%;height:130px;object-fit:cover;display:block;}
-.media-item .mi-info{padding:8px 10px;}
-.media-item .mi-name{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.media-item .mi-cat{font-size:10px;font-weight:500;color:var(--brown);margin-top:2px;}
-.media-item .mi-check{position:absolute;top:7px;right:7px;width:22px;height:22px;background:var(--accent);border-radius:50%;display:none;align-items:center;justify-content:center;color:white;font-size:12px;}
-.media-item.selected .mi-check{display:flex;}
-.media-tag{display:inline-block;background:var(--blush);color:var(--brown);font-size:9px;font-weight:600;padding:2px 6px;border-radius:8px;margin-top:3px;}
-.media-actions{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap;}
-.selected-count{font-size:12px;color:var(--muted);margin-left:auto;}
-.media-pagination{display:flex;gap:6px;margin-top:20px;justify-content:center;align-items:center;}
-.media-pagination button{padding:6px 12px;border:1px solid var(--border);border-radius:7px;font-size:12px;cursor:pointer;background:white;font-family:'DM Sans',sans-serif;color:var(--muted);transition:all .2s;}
-.media-pagination button:hover:not(:disabled){border-color:var(--taupe);color:var(--brown);}
-.media-pagination button:disabled{opacity:.4;cursor:not-allowed;}
-.media-pagination .page-info{font-size:12px;color:var(--muted);padding:0 8px;}
-.tag-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500;margin:2px;}
-.tag-newborn{background:#fde8d8;color:#b5835a;}
-.tag-embarazo{background:#fde8f0;color:#b55a82;}
-.tag-familia{background:#d8f0de;color:#5a8b6d;}
-.tag-comunion{background:#e8d8fd;color:#7a5ab5;}
-.tag-bautizo{background:#d8eafd;color:#5a7ab5;}
-.tag-smashcake{background:#fdf0d8;color:#b59a5a;}
-.tag-general{background:#eeeeee;color:#777777;}
-
-
-/* PREVIEW & EDITOR */
-#postPreview h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin:24px 0 10px;color:var(--dark);}
-#postPreview h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin:18px 0 8px;color:var(--brown);}
-#postPreview p{margin-bottom:14px;font-size:14px;}
-#postPreview strong{font-weight:600;}
-#postPreview figure{margin:18px 0;text-align:center;}
-#postPreview figure img{max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.1);}
-#postPreview ul,#postPreview ol{margin:10px 0 14px 20px;}
-#postPreview li{margin-bottom:6px;font-size:14px;}
-.suggested-img{border:2px solid var(--border);border-radius:9px;overflow:hidden;cursor:pointer;transition:all .2s;background:white;}
-.suggested-img:hover{border-color:var(--accent);transform:translateY(-2px);}
-.suggested-img.auto-selected{border-color:var(--success);background:#f0faf4;}
-.suggested-img img{width:100%;height:110px;object-fit:cover;}
-.suggested-img .si-info{padding:7px 9px;}
-.suggested-img .si-name{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.suggested-img .si-match{font-size:10px;font-weight:600;color:var(--success);}
-
-
-/* CALENDAR MANAGER */
-.cal-manager-grid{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start;}
-.cal-list{display:flex;flex-direction:column;gap:8px;}
-.cal-item{background:white;border:1px solid var(--border);border-radius:11px;padding:13px 15px;display:flex;align-items:center;gap:10px;cursor:grab;transition:all .2s;}
-.cal-item:hover{border-color:var(--taupe);box-shadow:0 2px 8px rgba(139,109,82,.1);}
-.cal-item.dragging{opacity:.5;border-color:var(--accent);}
-.cal-item.drag-over{border-color:var(--accent);background:#fdf5ef;}
-.cal-item .ci-drag{color:var(--border);font-size:16px;cursor:grab;padding:0 4px;}
-.cal-item .ci-num{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--taupe);min-width:28px;}
-.cal-item .ci-body{flex:1;}
-.cal-item .ci-name{font-size:13px;font-weight:500;color:var(--dark);line-height:1.3;}
-.cal-item .ci-meta{font-size:11px;color:var(--muted);margin-top:3px;display:flex;gap:8px;}
-.cal-item .ci-actions{display:flex;gap:5px;opacity:0;transition:opacity .2s;}
-.cal-item:hover .ci-actions{opacity:1;}
-.cal-item .ci-actions button{padding:4px 9px;font-size:11px;border-radius:6px;}
-.season-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-.season-dot.primavera{background:#e8b4c8;}
-.season-dot.verano{background:#f0c060;}
-.season-dot.otoño{background:#d4884a;}
-.season-dot.invierno{background:#8ab4d8;}
-.season-dot.ninguna{background:var(--border);}
-.cal-form{background:white;border:1px solid var(--border);border-radius:14px;overflow:hidden;position:sticky;top:20px;}
-.cal-form-header{background:var(--warm-white);padding:14px 18px;border-bottom:1px solid var(--border);}
-.cal-form-header h3{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;}
-.cal-form-body{padding:16px 18px;}
-.import-area{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px;}
-.import-area:hover{border-color:var(--taupe);background:var(--warm-white);}
-.import-area p{font-size:12px;color:var(--muted);margin-top:6px;}
-.ai-proposals{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
-.ai-proposal{padding:9px 12px;background:var(--cream);border:1px solid var(--border);border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:8px;}
-.ai-proposal:hover{border-color:var(--accent);background:#fdf5ef;}
-.ai-proposal .ap-add{font-size:16px;color:var(--accent);}
-
-
-/* LOGIN SCREEN */
-.login-screen{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;}
-.login-screen.hidden{display:none;}
-.login-box{background:white;border:1px solid var(--border);border-radius:20px;padding:40px 36px;width:100%;max-width:380px;text-align:center;box-shadow:0 8px 40px rgba(139,109,82,.12);}
-.login-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;letter-spacing:.05em;margin-bottom:4px;}
-.login-sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:32px;}
-.login-box .input-group{text-align:left;margin-bottom:14px;}
-.login-box .input-group input{background:var(--cream);}
-.login-error{background:#e8d4d4;color:var(--danger);font-size:12px;padding:9px 13px;border-radius:8px;margin-bottom:12px;display:none;}
-.login-error.visible{display:block;}
-.login-btn{width:100%;padding:14px;background:var(--dark);color:white;border:none;border-radius:10px;font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:400;letter-spacing:.05em;cursor:pointer;transition:all .25s;margin-top:4px;}
-.login-btn:hover:not(:disabled){background:var(--accent);}
-.login-btn:disabled{opacity:.5;cursor:not-allowed;}
-.login-footer{font-size:11px;color:var(--muted);margin-top:16px;}
-.user-badge{display:flex;align-items:center;gap:8px;background:var(--blush);color:var(--brown);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;}
-.user-badge:hover{background:var(--taupe);color:white;}
-
-
-/* SETTINGS TABS */
-#page-settings .tabs { margin-bottom: 0; }
-#page-settings .tab { font-size: 13px; padding: 10px 16px; }
-
-</style>
+<link rel="stylesheet" href="pages.css">
 </head>
 <body>
 
@@ -275,193 +42,248 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 </div>
 
 <!-- APP SHELL -->
-<div id="appShell" class="hidden" style="display:flex;min-height:100vh">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h4"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M21 4h-7"/><path d="M10 4H3"/><path d="M21 12h-9"/><path d="M8 12H3"/><path d="M21 20h-5"/><path d="M12 20H3"/><path d="M14 2v4"/><path d="M8 10v4"/><path d="M16 18v4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2Z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7Z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+    <symbol id="i-chevrons" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.7-.8 1.7-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.8-1.7 1.7-1.7H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.4-10-8.4Z"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/></symbol>
+  </defs>
+</svg>
 
-  <!-- SIDEBAR (Desktop) -->
-  <aside class="app-sidebar">
-    <div class="sidebar-header">
-      <h1 class="sidebar-logo">Otto</h1>
-      <p class="sidebar-tagline">Tu asistente de contenidos</p>
+<div id="appShell" class="hidden">
+
+  <!-- Menú lateral (escritorio) -->
+  <aside class="app-sidebar" aria-label="Navegación principal">
+    <div class="brand">Otto</div>
+
+    <div class="ws-switch">
+      <span class="ws-avatar" id="wsAvatar" aria-hidden="true">O</span>
+      <label class="sr-only" for="wsSelect">Perfil activo</label>
+      <select id="wsSelect" onchange="selectWorkspace(this.value)"></select>
+      <svg class="icon ws-chevron" aria-hidden="true"><use href="#i-chevrons"/></svg>
     </div>
 
-    <nav class="sidebar-nav">
-      <button class="nav-item active" data-page="home" onclick="showPage('home',this)">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Inicio</span>
+    <nav class="nav" aria-label="Módulos">
+      <button class="nav-item" data-module="home" onclick="showPage('home')">
+        <svg class="icon" aria-hidden="true"><use href="#i-home"/></svg>
+        <span>Inicio</span>
       </button>
-      <button class="nav-item" data-page="write" onclick="showPage('write',this)">
-        <span class="nav-icon">✍️</span>
-        <span class="nav-label">Otto escribe</span>
+      <button class="nav-item" data-module="write" onclick="showPage('write')">
+        <svg class="icon" aria-hidden="true"><use href="#i-pen"/></svg>
+        <span>Otto escribe</span>
       </button>
-      <button class="nav-item" data-page="watch" onclick="showPage('watch',this)">
-        <span class="nav-icon">👁️</span>
-        <span class="nav-label">Otto vigila</span>
+      <button class="nav-item" data-module="watch" onclick="showPage('watch')">
+        <svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg>
+        <span>Otto vigila</span>
+        <span class="nav-soon">Ejemplo</span>
       </button>
-      <button class="nav-item" data-page="count" onclick="showPage('count',this)">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">Otto cuenta</span>
+      <button class="nav-item" data-module="count" onclick="showPage('count')">
+        <svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>
+        <span>Otto cuenta</span>
+        <span class="nav-soon">Ejemplo</span>
       </button>
-      <button class="nav-item" data-page="order" onclick="showPage('order',this)">
-        <span class="nav-icon">📋</span>
-        <span class="nav-label">Otto ordena</span>
+      <button class="nav-item" data-module="order" onclick="showPage('order')">
+        <svg class="icon" aria-hidden="true"><use href="#i-clipboard"/></svg>
+        <span>Otto ordena</span>
+        <span class="nav-soon">Ejemplo</span>
       </button>
-      <button class="nav-item" data-page="schedule" onclick="showPage('schedule',this)">
-        <span class="nav-icon">📅</span>
-        <span class="nav-label">Otto agenda</span>
+      <button class="nav-item" data-module="schedule" onclick="showPage('schedule')">
+        <svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>
+        <span>Otto agenda</span>
+        <span class="nav-soon">Ejemplo</span>
       </button>
-
-      <div style="border-top:1px solid var(--color-border);margin:16px 0;padding-top:16px">
-        <button class="nav-item" data-page="settings" onclick="showPage('settings',this)">
-          <span class="nav-icon">⚙️</span>
-          <span class="nav-label">Configuración</span>
-        </button>
-      </div>
+      <div class="nav-sep" role="separator"></div>
+      <button class="nav-item" data-module="settings" onclick="showPage('settings')">
+        <svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>
+        <span>Configuración</span>
+      </button>
     </nav>
 
-    <div class="sidebar-footer">
-      <select id="wsSelect" class="workspace-select" onchange="selectWorkspace(this.value)"></select>
-
-      <div class="user-menu">
-        <button class="user-menu-toggle" onclick="toggleUserMenuSidebar()">
-          <span id="userBadgeName">👤 Usuario</span>
-        </button>
-        <div class="user-menu-dropdown hidden" id="userMenuDropdown">
-          <div class="user-menu-item">
-            <label class="user-menu-label">Tema</label>
-            <button class="btn btn-secondary" onclick="cycleTheme()" id="themeBtn" style="width:100%;justify-content:center">☀️ Claro</button>
-          </div>
-          <button class="user-menu-button" onclick="doLogout()">Cerrar sesión</button>
+    <div class="sidebar-foot">
+      <div class="menu" id="userMenu" role="menu" aria-label="Cuenta">
+        <div class="menu-label" id="themeLabel">Tema</div>
+        <div role="group" aria-labelledby="themeLabel">
+          <button class="menu-item" role="menuitemradio" data-theme-option="claro" aria-checked="false" onclick="setTheme('claro')">Claro<svg class="icon menu-check" aria-hidden="true"><use href="#i-check"/></svg></button>
+          <button class="menu-item" role="menuitemradio" data-theme-option="oscuro" aria-checked="false" onclick="setTheme('oscuro')">Oscuro<svg class="icon menu-check" aria-hidden="true"><use href="#i-check"/></svg></button>
+          <button class="menu-item" role="menuitemradio" data-theme-option="corporativo" aria-checked="false" onclick="setTheme('corporativo')">Corporativo<svg class="icon menu-check" aria-hidden="true"><use href="#i-check"/></svg></button>
         </div>
+        <div class="menu-sep" role="separator"></div>
+        <button class="menu-item" role="menuitem" onclick="closeMenus();newWorkspace()"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Nuevo perfil</button>
+        <button class="menu-item" role="menuitem" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>Manual de uso</button>
+        <button class="menu-item" role="menuitem" onclick="closeMenus();doLogout()"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg>Cerrar sesión</button>
       </div>
+      <button class="user-btn" id="userBtn" aria-haspopup="menu" aria-expanded="false" onclick="toggleUserMenu(event)">
+        <span class="user-avatar" id="userAvatar" aria-hidden="true">?</span>
+        <span class="user-email" id="userBadgeName">Cuenta</span>
+        <svg class="icon" aria-hidden="true" style="color:var(--text-muted)"><use href="#i-chevrons"/></svg>
+      </button>
     </div>
   </aside>
 
-  <!-- BOTTOMBAR (Mobile) -->
-  <nav class="app-bottombar">
-    <button class="bottombar-item active" data-page="home" onclick="showPage('home',this)">
-      <span class="bottombar-icon">🏠</span>
-      <span class="bottombar-label">Inicio</span>
-    </button>
-    <button class="bottombar-item" data-page="write" onclick="showPage('write',this)">
-      <span class="bottombar-icon">✍️</span>
-      <span class="bottombar-label">Otto escribe</span>
-    </button>
-    <button class="bottombar-item" onclick="toggleUserMenuSidebar()">
-      <span class="bottombar-icon">•••</span>
-      <span class="bottombar-label">Más</span>
-    </button>
+  <!-- Barra inferior (móvil) -->
+  <nav class="tabbar" aria-label="Navegación principal">
+    <button data-module="home" onclick="showPage('home')"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg>Inicio</button>
+    <button data-module="write" onclick="showPage('write')"><svg class="icon" aria-hidden="true"><use href="#i-pen"/></svg>Escribe</button>
+    <button data-module="settings" onclick="showPage('settings')"><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</button>
+    <button id="moreBtn" aria-haspopup="dialog" onclick="openMore()"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg>Más</button>
   </nav>
 
-  <!-- CONTENT AREA -->
-  <div class="app-content">
-
-<!-- LEGACY HEADER (mantener oculto por ahora) -->
-<header style="display:none">
-  <div class="logo-area">
-    <h1 id="wsTitle">Agente de contenidos</h1>
-    <p>Agente de Contenidos · Blog WordPress</p>
+  <div class="sheet-backdrop" id="sheetBackdrop" onclick="closeMore()"></div>
+  <div class="sheet" id="moreSheet" role="dialog" aria-modal="true" aria-label="Más opciones">
+    <div class="ws-switch">
+      <span class="ws-avatar" id="wsAvatarMobile" aria-hidden="true">O</span>
+      <label class="sr-only" for="wsSelectMobile">Perfil activo</label>
+      <select id="wsSelectMobile" onchange="selectWorkspace(this.value);closeMore()"></select>
+      <svg class="icon ws-chevron" aria-hidden="true"><use href="#i-chevrons"/></svg>
+    </div>
+    <div class="menu" role="menu" aria-label="Cuenta">
+      <div class="menu-label">Herramientas</div>
+      <button class="menu-item" role="menuitem" onclick="showPage('watch')"><svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg>Otto vigila</button>
+      <button class="menu-item" role="menuitem" onclick="showPage('count')"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>Otto cuenta</button>
+      <button class="menu-item" role="menuitem" onclick="showPage('order')"><svg class="icon" aria-hidden="true"><use href="#i-clipboard"/></svg>Otto ordena</button>
+      <button class="menu-item" role="menuitem" onclick="showPage('schedule')"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>Otto agenda</button>
+      <div class="menu-sep" role="separator"></div>
+      <div class="menu-label">Tema</div>
+      <button class="menu-item" role="menuitemradio" data-theme-option="claro" aria-checked="false" onclick="setTheme('claro')">Claro<svg class="icon menu-check" aria-hidden="true"><use href="#i-check"/></svg></button>
+      <button class="menu-item" role="menuitemradio" data-theme-option="oscuro" aria-checked="false" onclick="setTheme('oscuro')">Oscuro<svg class="icon menu-check" aria-hidden="true"><use href="#i-check"/></svg></button>
+      <button class="menu-item" role="menuitemradio" data-theme-option="corporativo" aria-checked="false" onclick="setTheme('corporativo')">Corporativo<svg class="icon menu-check" aria-hidden="true"><use href="#i-check"/></svg></button>
+      <div class="menu-sep" role="separator"></div>
+      <button class="menu-item" role="menuitem" onclick="closeMore();newWorkspace()"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Nuevo perfil</button>
+      <button class="menu-item" role="menuitem" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>Manual de uso</button>
+      <button class="menu-item" role="menuitem" onclick="closeMore();doLogout()"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg>Cerrar sesión</button>
+    </div>
   </div>
-  <div class="header-badges">
-    <span class="user-badge" id="userBadge" onclick="doLogout()" title="Cerrar sesión">
-      <span id="userBadgeName">👤</span>
-      <span style="font-size:10px">✕</span>
-    </span>
-    <select id="wsSelect" class="ws-select" onchange="selectWorkspace(this.value)" title="Perfil activo"></select>
-    <button class="badge ws-new" onclick="newWorkspace()" title="Crear perfil nuevo">＋ Perfil</button>
-    <span class="badge orange" id="seasonBadge">🗓️ Sin temporada</span>
-    <span class="badge green" id="historyBadge">📝 0 posts guardados</span>
-    <button class="badge" id="themeBtn" onclick="cycleTheme()" title="Cambiar tema" style="cursor:pointer">☀️ Tema</button>
-  </div>
-</header>
 
-<nav class="main-nav" style="display:none">
-  <button class="nav-btn active" onclick="showPage('write',this)">✍️ Generar post</button>
-  <button class="nav-btn" onclick="showPage('settings',this)">⚙️ Configuración</button>
-  <button class="nav-btn" onclick="showPage('history',this)">📚 Historial</button>
-  <button class="nav-btn" onclick="showPage('media',this)">🖼️ Imágenes</button>
-  <button class="nav-btn" onclick="showPage('calendar',this)">📅 Calendario</button>
-  <button class="nav-btn" onclick="showPage('help',this)">📖 Manual</button>
-</nav>
+  <!-- Zona de trabajo -->
+  <main class="app-main" id="main">
+
+<!-- Elementos que el código antiguo todavía actualiza; no se ven -->
+<div hidden>
+  <span id="wsTitle"></span><span id="seasonBadge"></span><span id="historyBadge"></span>
+</div>
 
 <!-- PAGE: HOME / INICIO -->
 <div class="page active" id="page-home">
-  <div id="homeGreeting"></div>
-  <div id="homeAskOtto"></div>
-  <div id="homeProposals"></div>
-  <div id="homePulse"></div>
+  <header class="page-head">
+    <div>
+      <h1 class="page-title" id="homeTitle">Buenos días</h1>
+      <p class="page-sub" id="homeSub"></p>
+    </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button><button class="btn btn-primary" onclick="showPage('write')"><svg class="icon" aria-hidden="true"><use href="#i-pen"/></svg>Escribir un post</button></div>
+  </header>
+
+  <form class="ask" id="askForm" onsubmit="return OttoHome.ask(event)">
+    <svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg>
+    <label class="sr-only" for="askInput">Pídele algo a Otto</label>
+    <input id="askInput" type="text" autocomplete="off" placeholder="Pídele algo a Otto: «escribe un post sobre sesiones de otoño»"/>
+    <button class="btn btn-secondary" type="submit">Enviar</button>
+  </form>
+  <p class="ask-note" id="askNote" role="status" hidden></p>
+
+  <div class="home-grid">
+    <section aria-labelledby="homeTasksTitle">
+      <div class="sec-head"><h2 id="homeTasksTitle">Para hoy</h2><span class="sec-count" id="homeCount"></span></div>
+      <div id="homeFilters"></div>
+      <div id="homeTasks"></div>
+      <a class="more" href="#" onclick="showPage('calendar');return false">Ver el calendario completo</a>
+    </section>
+    <aside class="pulse" aria-labelledby="homeFiguresTitle">
+      <div class="sec-head"><h2 id="homeFiguresTitle">Este mes</h2></div>
+      <div id="homeFigures"></div>
+    </aside>
+  </div>
 </div>
 
 <!-- PAGE: OTTO ESCRIBE (antes "generate") -->
 <div class="page" id="page-write">
-  <div class="two-col">
+  <header class="page-head">
     <div>
-      <div class="card">
-        <div class="card-header"><h2>Nuevo post</h2><p>Calendario editorial o tema libre</p></div>
-        <div class="card-body">
-          <div class="input-group">
-            <label>Temporada</label>
-            <div class="season-row">
-              <button class="season-btn active" onclick="setSeason('ninguna',this)">🗓️ Todas</button>
-              <button class="season-btn" onclick="setSeason('primavera',this)">🌸 Primavera</button>
-              <button class="season-btn" onclick="setSeason('verano',this)">☀️ Verano</button>
-              <button class="season-btn" onclick="setSeason('otoño',this)">🍂 Otoño</button>
-              <button class="season-btn" onclick="setSeason('invierno',this)">❄️ Invierno</button>
-            </div>
-          </div>
-          <div class="tabs">
-            <button class="tab active" onclick="switchTab('calendar',this)">📅 Calendario</button>
-            <button class="tab" onclick="switchTab('free',this)">✍️ Tema libre</button>
-          </div>
-          <div id="calendarMode">
-            <p style="font-size:11px;color:var(--muted);margin-bottom:9px;line-height:1.5">Selecciona el tema del próximo post.</p>
-            <div class="topic-grid" id="topicGrid"></div>
-          </div>
-          <div id="freeMode" style="display:none">
-            <div class="input-group">
-              <label>Tema del post</label>
-              <input type="text" id="freeTopic" placeholder="Ej: sesión de comunión en exterior…"/>
-            </div>
-            <div class="input-group">
-              <label>Ángulo o enfoque</label>
-              <textarea id="freeAngle" rows="3" placeholder="Opcional: qué destacar, a quién va dirigido…"></textarea>
-            </div>
-            <div class="input-group">
-              <label>Longitud</label>
-              <select id="freeLength">
-                <option value="medium">Media (700–900 palabras)</option>
-                <option value="long">Larga (1000–1300 palabras)</option>
-                <option value="short">Corta (400–600 palabras)</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-full" id="generateBtn" onclick="generatePost()">Generar post completo</button>
+      <h1 class="page-title">Otto escribe</h1>
+      <p class="page-sub">Posts con intención de venta, listos para publicar en WordPress.</p>
+    </div>
+    <div class="page-actions">
+      <button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button>
+      <button class="btn btn-secondary" id="publishHeadBtn" style="display:none" onclick="showPage('settings')">Publicar</button>
+      <button class="btn btn-primary" id="generateBtn" onclick="generatePost()">Generar</button>
+    </div>
+  </header>
+  <div class="subnav" data-subnav="write" role="tablist" aria-label="Secciones de Otto escribe"></div>
+  <div class="two-col">
+    <div class="steps">
+      <section class="step">
+        <h2 class="step-title"><span class="step-num">1</span>Temporada</h2>
+        <div class="season-row">
+          <button class="season-btn active" onclick="setSeason('ninguna',this)">Todas</button>
+          <button class="season-btn" onclick="setSeason('primavera',this)">Primavera</button>
+          <button class="season-btn" onclick="setSeason('verano',this)">Verano</button>
+          <button class="season-btn" onclick="setSeason('otoño',this)">Otoño</button>
+          <button class="season-btn" onclick="setSeason('invierno',this)">Invierno</button>
         </div>
-      </div>
+      </section>
+      <section class="step">
+        <h2 class="step-title"><span class="step-num">2</span>Tema</h2>
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('calendar',this)">Del calendario</button>
+          <button class="tab" onclick="switchTab('free',this)">Tema libre</button>
+        </div>
+        <div id="calendarMode">
+          <div class="topic-grid" id="topicGrid"></div>
+        </div>
+        <div id="freeMode" style="display:none">
+          <div class="input-group">
+            <label for="freeTopic">Tema del post</label>
+            <input type="text" id="freeTopic" placeholder="Por ejemplo: sesión de comunión en exterior"/>
+          </div>
+          <div class="input-group">
+            <label for="freeAngle">Enfoque (opcional)</label>
+            <textarea id="freeAngle" rows="3" placeholder="Qué destacar o a quién va dirigido"></textarea>
+          </div>
+          <div class="input-group">
+            <label for="freeLength">Longitud</label>
+            <select id="freeLength">
+              <option value="medium">Media (700–900 palabras)</option>
+              <option value="long">Larga (1000–1300 palabras)</option>
+              <option value="short">Corta (400–600 palabras)</option>
+            </select>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <div>
+    <section class="step">
+      <h2 class="step-title"><span class="step-num">3</span><span id="outputTitle">Resultado</span></h2>
       <div class="output-card">
-        <div class="output-header">
-          <h2 id="outputTitle">Resultado</h2>
-          <div class="out-actions" id="outputActions" style="display:none">
-            <button class="btn btn-secondary" onclick="copyContent('text')">Copiar texto</button>
-            <button class="btn btn-secondary" onclick="copyContent('html')">Copiar HTML</button>
-            <button class="btn btn-success" onclick="saveToHistory()">💾 Guardar</button>
-          </div>
+        <div class="output-header out-actions" id="outputActions" style="display:none">
+          <button class="btn btn-secondary" onclick="copyContent('text')">Copiar texto</button>
+          <button class="btn btn-secondary" onclick="copyContent('html')">Copiar HTML</button>
+          <button class="btn btn-secondary" onclick="saveToHistory()">Guardar</button>
         </div>
-        <div class="output-tabs" id="outputTabs" style="display:none">
-          <button class="output-tab active" onclick="showResultTab('seo',this)">🔍 SEO</button>
-          <button class="output-tab" onclick="showResultTab('post',this)">📄 Post</button>
-          <button class="output-tab" onclick="showResultTab('editor',this)">✏️ Editar</button>
-          <button class="output-tab" onclick="showResultTab('html',this)">💻 HTML</button>
-          <button class="output-tab" onclick="showResultTab('preview',this)">👁️ Preview</button>
-          <button class="output-tab" onclick="showResultTab('images',this)">📸 Imágenes</button>
-          <button class="output-tab" onclick="showResultTab('instagram',this)">📱 Instagram</button>
+        <div class="output-tabs" id="outputTabs" style="display:none" role="tablist">
+          <button class="output-tab active" onclick="showResultTab('seo',this)">SEO</button>
+          <button class="output-tab" onclick="showResultTab('post',this)">Texto</button>
+          <button class="output-tab" onclick="showResultTab('editor',this)">Editar</button>
+          <button class="output-tab" onclick="showResultTab('html',this)">HTML</button>
+          <button class="output-tab" onclick="showResultTab('preview',this)">Vista previa</button>
+          <button class="output-tab" onclick="showResultTab('images',this)">Imágenes</button>
+          <button class="output-tab" onclick="showResultTab('instagram',this)">Instagram</button>
         </div>
         <div class="empty-state" id="emptyState">
-          <div class="empty-icon">🌸</div>
-          <h3>Listo para crear</h3>
-          <p>Selecciona un tema del calendario o escribe uno libre para generar el post completo.</p>
+          <h3>Todo listo para escribir</h3>
+          <p>Elige una temporada y un tema, y pulsa Generar. El post aparecerá aquí.</p>
         </div>
         <div class="loading-state" id="loadingState">
           <div class="spinner"></div>
@@ -471,322 +293,161 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
         <div class="result-body" id="resultBody">
           <div id="tab-seo">
             <div class="seo-block">
-              <h3>🔍 Ficha SEO completa</h3>
+              <h3>Ficha SEO</h3>
               <div class="seo-row">
                 <div class="seo-item"><label>Título SEO</label><div class="sv title-val" id="outTitle">—</div></div>
-                <div class="seo-item"><label>Slug URL</label><div class="sv slug-val" id="outSlug">—</div></div>
+                <div class="seo-item"><label>Dirección (slug)</label><div class="sv slug-val" id="outSlug">—</div></div>
                 <div class="seo-item"><label>Meta descripción</label><div class="sv" id="outMeta">—</div></div>
-                <div class="seo-item"><label>Keyword principal</label><div class="sv" id="outKeyword">—</div></div>
-                <div class="seo-item"><label>Keywords secundarias</label><div class="sv" id="outKeywords2">—</div></div>
-                <div class="seo-item"><label>Categoría WordPress</label><div class="sv" id="outCategory">—</div></div>
-                <div class="seo-item"><label>Tags sugeridos</label><div class="sv" id="outTags">—</div></div>
+                <div class="seo-item"><label>Palabra clave principal</label><div class="sv" id="outKeyword">—</div></div>
+                <div class="seo-item"><label>Palabras clave secundarias</label><div class="sv" id="outKeywords2">—</div></div>
+                <div class="seo-item"><label>Categoría en WordPress</label><div class="sv" id="outCategory">—</div></div>
+                <div class="seo-item"><label>Etiquetas sugeridas</label><div class="sv" id="outTags">—</div></div>
               </div>
             </div>
           </div>
           <div id="tab-post" style="display:none"><div class="post-text" id="outPostText">—</div></div>
           <div id="tab-html" style="display:none"><div class="html-view"><pre id="outHTML">—</pre></div></div>
           <div id="tab-instagram" style="display:none">
-            <div class="seo-block">
-              <h3>📱 Contenido para Instagram</h3>
-              <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-                <button class="btn btn-primary" style="font-size:11px;padding:6px 14px" onclick="generateInstagram()">✨ Generar contenido Instagram</button>
-                <span id="igLoadingMsg" style="font-size:12px;color:var(--muted);align-self:center;display:none">Generando…</span>
+            <div class="tab-bar-row">
+              <button class="btn btn-secondary" onclick="generateInstagram()">Generar contenido para Instagram</button>
+              <span id="igLoadingMsg" class="muted-note" style="display:none">Generando…</span>
+            </div>
+            <div id="igContent" style="display:none">
+              <div class="ig-grid">
+                <div class="ig-box">
+                  <div class="ig-label">Post (1:1)</div>
+                  <div id="igPostCaption" class="ig-text"></div>
+                  <button class="btn btn-secondary btn-full" onclick="copyIG('post')">Copiar texto</button>
+                </div>
+                <div class="ig-box">
+                  <div class="ig-label">Story (9:16)</div>
+                  <div id="igStoryCaption" class="ig-text"></div>
+                  <button class="btn btn-secondary btn-full" onclick="copyIG('story')">Copiar texto</button>
+                </div>
               </div>
-              <div id="igContent" style="display:none">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-                  <!-- POST -->
-                  <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px">
-                    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--taupe);margin-bottom:8px">📷 Post (1:1)</div>
-                    <div id="igPostCaption" style="font-size:12px;line-height:1.7;color:var(--dark);white-space:pre-wrap;max-height:200px;overflow-y:auto"></div>
-                    <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;margin-top:10px;width:100%" onclick="copyIG('post')">Copiar caption</button>
-                  </div>
-                  <!-- STORY -->
-                  <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px">
-                    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--taupe);margin-bottom:8px">📲 Story (9:16)</div>
-                    <div id="igStoryCaption" style="font-size:12px;line-height:1.7;color:var(--dark);white-space:pre-wrap;max-height:200px;overflow-y:auto"></div>
-                    <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;margin-top:10px;width:100%" onclick="copyIG('story')">Copiar texto story</button>
-                  </div>
-                </div>
-                <!-- HASHTAGS -->
-                <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
-                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--taupe);margin-bottom:8px">#️⃣ Hashtags</div>
-                  <div id="igHashtags" style="font-size:12px;color:var(--accent);line-height:1.8"></div>
-                  <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;margin-top:10px" onclick="copyIG('hashtags')">Copiar hashtags</button>
-                </div>
-                <!-- IMAGE SUGGESTION -->
-                <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px">
-                  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--taupe);margin-bottom:10px">🖼️ Imagen sugerida del almacén</div>
-                  <div id="igImageSuggestion" class="media-grid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr))"></div>
-                </div>
+              <div class="ig-box">
+                <div class="ig-label">Hashtags</div>
+                <div id="igHashtags" class="ig-tags"></div>
+                <button class="btn btn-secondary" onclick="copyIG('hashtags')">Copiar hashtags</button>
+              </div>
+              <div class="ig-box">
+                <div class="ig-label">Imagen sugerida del almacén</div>
+                <div id="igImageSuggestion" class="media-grid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr))"></div>
               </div>
             </div>
           </div>
-
           <div id="tab-images" style="display:none">
             <div class="seo-block">
-              <h3>📸 Imágenes sugeridas del almacén</h3>
-              <div id="outImages" style="font-size:13px;line-height:1.85;color:var(--dark)">—</div>
-              <div id="suggestedImgGrid" class="media-grid" style="margin-top:14px"></div>
-              <div id="insertSuggestedBar" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-                <span id="suggestedSelectedCount" style="font-size:12px;color:var(--muted)">0 imágenes seleccionadas</span>
-                <button class="btn btn-success" style="padding:7px 14px;font-size:12px;margin-left:auto" onclick="insertSuggestedIntoPost()">📎 Insertar en el post</button>
+              <h3>Imágenes sugeridas del almacén</h3>
+              <div id="outImages" class="post-text">—</div>
+              <div id="suggestedImgGrid" class="media-grid" style="margin-top:var(--sp-4)"></div>
+              <div id="insertSuggestedBar" class="insert-bar" style="display:none">
+                <span id="suggestedSelectedCount" class="muted-note">0 imágenes seleccionadas</span>
+                <button class="btn btn-primary" onclick="insertSuggestedIntoPost()">Insertar en el post</button>
               </div>
             </div>
           </div>
           <div id="tab-editor" style="display:none">
-            <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">
-              <span style="font-size:12px;color:var(--muted)">Edita el texto del post directamente aquí</span>
-              <button class="btn btn-secondary" style="padding:5px 11px;font-size:11px;margin-left:auto" onclick="syncEditorToHTML()">🔄 Actualizar HTML</button>
+            <div class="tab-bar-row">
+              <span class="muted-note">Edita el texto del post aquí.</span>
+              <button class="btn btn-secondary" style="margin-left:auto" onclick="syncEditorToHTML()">Actualizar HTML</button>
             </div>
-            <textarea id="postEditor" style="width:100%;min-height:480px;padding:14px;border:1px solid var(--border);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.85;color:#3d2e26;background:var(--cream);outline:none;resize:vertical" placeholder="El texto del post aparecerá aquí para editar…" oninput="onEditorChange()"></textarea>
+            <textarea id="postEditor" class="post-editor" aria-label="Texto del post" placeholder="El texto del post aparecerá aquí para editarlo." oninput="onEditorChange()"></textarea>
           </div>
           <div id="tab-preview" style="display:none">
-            <div style="margin-bottom:10px;display:flex;gap:8px;align-items:center">
-              <span style="font-size:12px;color:var(--muted)">Vista previa del post con imágenes</span>
-              <button class="btn btn-secondary" style="padding:5px 11px;font-size:11px;margin-left:auto" onclick="refreshPreview()">🔄 Actualizar</button>
+            <div class="tab-bar-row">
+              <span class="muted-note">Así se verá el post con sus imágenes.</span>
+              <button class="btn btn-secondary" style="margin-left:auto" onclick="refreshPreview()">Actualizar</button>
             </div>
-            <div id="postPreview" style="background:white;border:1px solid var(--border);border-radius:9px;padding:28px;font-family:Georgia,serif;line-height:1.8;color:#2c2420;min-height:400px;max-height:600px;overflow-y:auto"></div>
+            <div id="postPreview" class="post-preview"></div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </div>
 
 <!-- PAGE: OTTO VIGILA -->
 <div class="page" id="page-watch">
-  <div style="max-width:900px;margin:0 auto">
-    <div style="text-align:center;padding:60px 20px">
-      <div style="font-size:72px;margin-bottom:24px">👁️</div>
-      <h1 style="font-family:var(--font-display);font-size:32px;font-weight:400;margin-bottom:16px;color:var(--color-text)">Otto vigila</h1>
-      <p style="font-size:16px;color:var(--color-text-muted);max-width:500px;margin:0 auto 40px;line-height:1.6">
-        Monitorización inteligente de tu web. Otto revisará tu sitio, alertará de caídas y analizará el tráfico.
-      </p>
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Otto vigila</h1>
+      <p class="page-sub">Monitorización inteligente de tu web. Otto revisará tu sitio, alertará de caídas y analizará el tráfico.</p>
     </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:40px">
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">🔍</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Monitoreo 24/7</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Revisión automática cada 5 minutos. Te avisa por email si detecta que tu web no responde.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">📊</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Análisis de tráfico</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Visitas, páginas más vistas, tiempo de permanencia y origen del tráfico.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">⚡</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Velocidad</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Medición del tiempo de carga y sugerencias de optimización SEO técnico.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="background:var(--color-accent-light);border-color:var(--color-accent)">
-      <div class="card-body" style="padding:32px;text-align:center">
-        <p style="font-size:14px;font-weight:500;color:var(--color-accent);margin-bottom:8px">PRÓXIMAMENTE</p>
-        <p style="font-size:13px;color:var(--color-text-muted)">Este módulo estará disponible próximamente. Mientras tanto, puedes usar Otto escribe para crear contenido.</p>
-      </div>
-    </div>
-  </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="mod-body" id="mod-watch"></div>
 </div>
 
 <!-- PAGE: OTTO CUENTA -->
 <div class="page" id="page-count">
-  <div style="max-width:900px;margin:0 auto">
-    <div style="text-align:center;padding:60px 20px">
-      <div style="font-size:72px;margin-bottom:24px">📊</div>
-      <h1 style="font-family:var(--font-display);font-size:32px;font-weight:400;margin-bottom:16px;color:var(--color-text)">Otto cuenta</h1>
-      <p style="font-size:16px;color:var(--color-text-muted);max-width:500px;margin:0 auto 40px;line-height:1.6">
-        Gestión económica simplificada. Facturas, gastos e ingresos organizados automáticamente.
-      </p>
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Otto cuenta</h1>
+      <p class="page-sub">Gestión económica simplificada. Facturas, gastos e ingresos organizados automáticamente.</p>
     </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:40px">
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">📸</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Escaneo de tickets</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Haz una foto al ticket con el móvil. Otto extrae el importe, fecha y concepto automáticamente.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">💰</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Control de ingresos</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Registro de facturas emitidas, pagos pendientes y estado de cada trabajo.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">📈</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Resumen trimestral</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Totales por trimestre listos para Hacienda. Exporta a PDF o Excel.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="background:var(--color-accent-light);border-color:var(--color-accent)">
-      <div class="card-body" style="padding:32px;text-align:center">
-        <p style="font-size:14px;font-weight:500;color:var(--color-accent);margin-bottom:8px">PRÓXIMAMENTE</p>
-        <p style="font-size:13px;color:var(--color-text-muted)">Este módulo estará disponible próximamente. Mientras tanto, puedes usar Otto escribe para crear contenido.</p>
-      </div>
-    </div>
-  </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="mod-body" id="mod-count"></div>
 </div>
 
 <!-- PAGE: OTTO ORDENA -->
 <div class="page" id="page-order">
-  <div style="max-width:900px;margin:0 auto">
-    <div style="text-align:center;padding:60px 20px">
-      <div style="font-size:72px;margin-bottom:24px">📋</div>
-      <h1 style="font-family:var(--font-display);font-size:32px;font-weight:400;margin-bottom:16px;color:var(--color-text)">Otto ordena</h1>
-      <p style="font-size:16px;color:var(--color-text-muted);max-width:500px;margin:0 auto 40px;line-height:1.6">
-        Gestión de proyectos y clientes. Seguimiento de trabajos, archivos y comunicaciones.
-      </p>
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Otto ordena</h1>
+      <p class="page-sub">Gestión de proyectos y clientes. Seguimiento de trabajos, archivos y comunicaciones.</p>
     </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:40px">
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">👥</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Ficha de clientes</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Contacto, historial de trabajos, notas importantes y archivos del cliente en un solo lugar.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">✅</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Lista de tareas</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Qué hay que entregar, cuándo y en qué estado. Recordatorios automáticos por email.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">📁</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Archivos organizados</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Sube archivos por cliente y proyecto. Otto los clasifica y te los encuentra cuando los necesites.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="background:var(--color-accent-light);border-color:var(--color-accent)">
-      <div class="card-body" style="padding:32px;text-align:center">
-        <p style="font-size:14px;font-weight:500;color:var(--color-accent);margin-bottom:8px">PRÓXIMAMENTE</p>
-        <p style="font-size:13px;color:var(--color-text-muted)">Este módulo estará disponible próximamente. Mientras tanto, puedes usar Otto escribe para crear contenido.</p>
-      </div>
-    </div>
-  </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="mod-body" id="mod-order"></div>
 </div>
 
 <!-- PAGE: OTTO AGENDA -->
 <div class="page" id="page-schedule">
-  <div style="max-width:900px;margin:0 auto">
-    <div style="text-align:center;padding:60px 20px">
-      <div style="font-size:72px;margin-bottom:24px">📅</div>
-      <h1 style="font-family:var(--font-display);font-size:32px;font-weight:400;margin-bottom:16px;color:var(--color-text)">Otto agenda</h1>
-      <p style="font-size:16px;color:var(--color-text-muted);max-width:500px;margin:0 auto 40px;line-height:1.6">
-        Reserva de citas online. Los clientes eligen día y hora, Otto gestiona tu calendario.
-      </p>
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Otto agenda</h1>
+      <p class="page-sub">Reserva de citas online. Los clientes eligen día y hora, Otto gestiona tu calendario.</p>
     </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:40px">
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">🔗</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Enlace de reserva</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Comparte un enlace donde los clientes ven tu disponibilidad y reservan en un clic.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">⏰</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Horarios flexibles</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Define tu disponibilidad por días, horas y duración de las sesiones.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body" style="text-align:center;padding:32px 24px">
-          <div style="font-size:48px;margin-bottom:16px">✉️</div>
-          <h3 style="font-family:var(--font-display);font-size:18px;font-weight:600;margin-bottom:12px">Recordatorios</h3>
-          <p style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-            Email automático al cliente 24h antes de la cita. Reduce las ausencias.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="background:var(--color-accent-light);border-color:var(--color-accent)">
-      <div class="card-body" style="padding:32px;text-align:center">
-        <p style="font-size:14px;font-weight:500;color:var(--color-accent);margin-bottom:8px">PRÓXIMAMENTE</p>
-        <p style="font-size:13px;color:var(--color-text-muted)">Este módulo estará disponible próximamente. Mientras tanto, puedes usar Otto escribe para crear contenido.</p>
-      </div>
-    </div>
-  </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="mod-body" id="mod-schedule"></div>
 </div>
 
 <!-- PAGE: WORDPRESS -->
 <div class="page" id="page-settings">
-  <div style="max-width:680px">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Configuración</h1>
+      <p class="page-sub">Perfil, conexiones y consumo de cada negocio.</p>
+    </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="settings-wrap">
     <!-- SETTINGS TABS -->
-    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
-      <button class="tab active" id="stab-profile" onclick="switchSettingsTab('profile',this)">🏢 Perfil</button>
-      <button class="tab" id="stab-wp" onclick="switchSettingsTab('wp',this)">🔗 WordPress</button>
-      <button class="tab" id="stab-claude" onclick="switchSettingsTab('claude',this)">🤖 IA & Consumo</button>
-      <button class="tab" id="stab-instagram" onclick="switchSettingsTab('instagram',this)">📱 Instagram</button>
+    <div class="settings-tabs" role="tablist" aria-label="Secciones de configuración">
+      <button class="tab active" id="stab-profile" onclick="switchSettingsTab('profile',this)">Perfil</button>
+      <button class="tab" id="stab-wp" onclick="switchSettingsTab('wp',this)">WordPress</button>
+      <button class="tab" id="stab-claude" onclick="switchSettingsTab('claude',this)">IA y consumo</button>
+      <button class="tab" id="stab-instagram" onclick="switchSettingsTab('instagram',this)">Instagram</button>
     </div>
 
     <!-- PERFIL SECTION -->
     <div id="settings-profile">
-      <div class="card" style="margin-bottom:18px">
-        <div class="card-header"><h2>🏢 Perfil del negocio</h2><p>Cada perfil es un cliente o nicho con su propia voz, conocimiento, WordPress y claves de IA</p></div>
+      <div class="card">
+        <div class="card-header"><h2>Perfil del negocio</h2><p>Cada perfil tiene su propia voz, conocimiento, WordPress y clave de IA.</p></div>
         <div class="card-body">
-          <div class="input-group"><label>Nombre del perfil / negocio</label><input type="text" id="pfName" placeholder="Ej. Estudio de fotografía María"/></div>
-          <div class="input-group"><label>Sector o nicho</label><input type="text" id="pfNiche" placeholder="Ej. fotografía de familia, inmobiliaria, restauración…"/></div>
-          <div class="input-group"><label>Idioma de los posts</label>
+          <div class="input-group"><label for="pfName">Nombre del negocio</label><input type="text" id="pfName" placeholder="Por ejemplo: Estudio de fotografía María"/></div>
+          <div class="input-group"><label for="pfNiche">Sector</label><input type="text" id="pfNiche" placeholder="Por ejemplo: fotografía de familia"/></div>
+          <div class="input-group"><label for="pfLanguage">Idioma de los posts</label>
             <select id="pfLanguage"><option value="es">Español</option><option value="en">Inglés</option><option value="ca">Catalán</option><option value="pt">Portugués</option><option value="fr">Francés</option><option value="it">Italiano</option></select></div>
-          <div class="input-group"><label>Voz y tono</label><textarea id="pfTone" rows="4" placeholder="Cómo habla la marca: cercana, técnica, de tú, con humor… Frases típicas, qué evitar."></textarea></div>
-          <div class="input-group"><label>Base de conocimiento</label><textarea id="pfKnowledge" rows="12" placeholder="Quién es, servicios y tarifas, estilo, público, datos de contacto, localización, llamadas a la acción…"></textarea></div>
-          <div class="input-group"><label>Palabras clave SEO</label><textarea id="pfKeywords" rows="3" placeholder="Una por línea o separadas por comas"></textarea></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="saveProfile()">💾 Guardar perfil</button>
-            <button class="btn btn-secondary" onclick="deleteWorkspace()" style="color:var(--danger)">🗑️ Eliminar perfil</button>
+          <div class="input-group"><label for="pfTone">Voz y tono</label><textarea id="pfTone" rows="4" placeholder="Cómo habla la marca: cercana, técnica, de tú, con humor. Frases típicas y qué evitar."></textarea></div>
+          <div class="input-group"><label for="pfKnowledge">Base de conocimiento</label><textarea id="pfKnowledge" rows="12" placeholder="Quién es, servicios y tarifas, estilo, público, contacto, localización y llamadas a la acción."></textarea></div>
+          <div class="input-group"><label for="pfKeywords">Palabras clave SEO</label><textarea id="pfKeywords" rows="3" placeholder="Una por línea o separadas por comas"></textarea></div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveProfile()">Guardar perfil</button>
+            <button class="btn btn-danger" onclick="deleteWorkspace()">Eliminar perfil</button>
           </div>
           <div class="wp-status" id="pfStatus"></div>
         </div>
@@ -795,33 +456,31 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 
     <!-- WP SECTION -->
     <div id="settings-wp" style="display:none">
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-header"><h2>🔗 Conexión con WordPress</h2><p>Publica directamente vía API REST</p></div>
+    <div class="card">
+      <div class="card-header"><h2>Conexión con WordPress</h2><p>Para publicar los posts directamente desde Otto.</p></div>
       <div class="card-body">
-        <div class="input-group"><label>URL de tu WordPress</label><input type="url" id="wpUrl" placeholder="https://tuweb.com"/></div>
-        <div class="input-group"><label>Usuario WordPress</label><input type="text" id="wpUser" placeholder="tu usuario"/></div>
+        <div class="input-group"><label for="wpUrl">Dirección de tu WordPress</label><input type="url" id="wpUrl" placeholder="https://tuweb.com"/></div>
+        <div class="input-group"><label for="wpUser">Usuario</label><input type="text" id="wpUser" placeholder="Tu usuario de WordPress"/></div>
         <div class="input-group">
-          <label>Contraseña de WordPress <span style="font-weight:400;font-size:10px;color:var(--taupe)">(se guarda cifrada; déjala vacía para no cambiarla)</span></label>
+          <label for="wpPass">Contraseña <span class="label-note">Se guarda cifrada. Déjala vacía para no cambiarla.</span></label>
           <input type="password" id="wpPass" placeholder="••••••••" autocomplete="new-password"/>
-          <div id="wpPassHint" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+          <div id="wpPassHint" class="muted-note"></div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveWPConfig()">Guardar</button>
           <button class="btn btn-secondary" onclick="testWPConnection()">Probar conexión</button>
-          <button class="btn btn-primary" onclick="saveWPConfig()">💾 Guardar</button>
         </div>
         <div class="wp-status" id="wpStatus"></div>
         <hr class="wp-divider">
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;margin-bottom:10px">Publicar post generado</h3>
-        <div id="noPostWarning" style="font-size:12px;color:var(--muted);padding:11px;background:var(--cream);border-radius:8px;border:1px dashed var(--border)">
-          ⚠️ Primero genera un post en "Generar post".
-        </div>
+        <h3 class="sub-h">Publicar el post generado</h3>
+        <div id="noPostWarning" class="wp-instructions">Aún no hay ningún post para publicar. Genéralo primero en Otto escribe.</div>
         <div id="publishPanel" style="display:none">
-          <div style="background:var(--cream);border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:12px;font-size:12px">
-            <strong style="display:block;margin-bottom:3px;font-size:13px" id="publishPostTitle">—</strong>
-            <span style="color:var(--muted)" id="publishPostMeta">—</span>
+          <div class="publish-summary">
+            <strong id="publishPostTitle">—</strong>
+            <span class="muted-note" id="publishPostMeta">—</span>
           </div>
           <div class="input-group">
-            <label>Estado</label>
+            <label for="wpStatus2">Estado</label>
             <select id="wpStatus2" onchange="toggleSchedule(this.value)">
               <option value="draft">Borrador</option>
               <option value="publish">Publicar directamente</option>
@@ -829,17 +488,17 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
             </select>
           </div>
           <div class="input-group" id="scheduleRow" style="display:none">
-            <label>Fecha y hora</label>
+            <label for="wpSchedule">Fecha y hora</label>
             <input type="datetime-local" id="wpSchedule"/>
           </div>
-          <button class="btn btn-success btn-full" id="publishBtn" onclick="publishToWordPress()" style="font-family:'Cormorant Garamond',serif;font-size:16px;letter-spacing:.05em;padding:13px">
+          <button class="btn btn-primary btn-full" id="publishBtn" onclick="publishToWordPress()">
             Publicar en WordPress
           </button>
           <div class="wp-status" id="publishStatus"></div>
         </div>
         <hr class="wp-divider">
         <div class="wp-instructions">
-          <strong>¿Cómo se conecta?</strong><br><br>Tu WordPress necesita el plugin <code>JWT Authentication for WP REST API</code>. Se usa tu usuario y tu contraseña normales de WordPress. La contraseña se guarda cifrada en el servidor y nunca vuelve al navegador.
+          <strong>Cómo se conecta</strong><br>Tu WordPress necesita el plugin <code>JWT Authentication for WP REST API</code>. Se usan tu usuario y contraseña normales de WordPress. La contraseña se guarda cifrada en el servidor y nunca vuelve al navegador.
         </div>
       </div>
     </div>
@@ -847,50 +506,50 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 
     <!-- CLAUDE & CONSUMO SECTION -->
     <div id="settings-claude" style="display:none">
-      <div class="card" style="margin-bottom:18px">
-        <div class="card-header"><h2>🤖 Proveedor de IA y clave (API Key)</h2><p>Cada perfil usa su propia clave. Se guarda cifrada en el servidor y nunca vuelve al navegador.</p></div>
+      <div class="card">
+        <div class="card-header"><h2>Proveedor de IA y clave</h2><p>Cada perfil usa su propia clave. Se guarda cifrada en el servidor y nunca vuelve al navegador.</p></div>
         <div class="card-body">
-          <div class="input-group"><label>Proveedor</label>
+          <div class="input-group"><label for="aiProvider">Proveedor</label>
             <select id="aiProvider" onchange="onProviderChange()">
               <option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI (GPT)</option><option value="gemini">Google (Gemini)</option><option value="mistral">Mistral</option>
             </select></div>
-          <div class="input-group"><label>Modelo <span style="font-weight:400;font-size:10px;color:var(--taupe)">(vacío = el recomendado)</span></label><input type="text" id="aiModel" placeholder=""/></div>
-          <div class="input-group"><label>API Key</label><input type="password" id="aiKey" placeholder="Pega aquí tu clave" autocomplete="new-password"/>
-            <div id="aiKeyHint" style="font-size:11px;color:var(--muted);margin-top:4px"></div></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="saveAI()">💾 Guardar</button>
+          <div class="input-group"><label for="aiModel">Modelo <span class="label-note">Si lo dejas vacío, se usa el recomendado.</span></label><input type="text" id="aiModel" placeholder=""/></div>
+          <div class="input-group"><label for="aiKey">Clave (API key)</label><input type="password" id="aiKey" placeholder="Pega aquí tu clave" autocomplete="new-password"/>
+            <div id="aiKeyHint" class="muted-note"></div></div>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="saveAI()">Guardar</button>
             <button class="btn btn-secondary" onclick="testAI()">Probar conexión</button>
           </div>
           <div class="wp-status" id="aiStatus"></div>
         </div>
       </div>
-      <div class="card" style="margin-bottom:18px">
-        <div class="card-header"><h2>📊 Control de consumo</h2><p>Tokens usados este mes por este perfil</p></div>
+      <div class="card">
+        <div class="card-header"><h2>Consumo</h2><p>Lo que ha gastado este perfil este mes.</p></div>
         <div class="card-body">
-          <div class="stats-row" style="margin-bottom:16px">
+          <div class="stats-row">
             <div class="stat-card"><div class="stat-num" id="statTokensMonth">0</div><div class="stat-label">Tokens este mes</div></div>
             <div class="stat-card"><div class="stat-num" id="statCostMonth">0.00€</div><div class="stat-label">Coste estimado</div></div>
             <div class="stat-card"><div class="stat-num" id="statTokensPost">0</div><div class="stat-label">Tokens último post</div></div>
             <div class="stat-card"><div class="stat-num" id="statPostsMonth">0</div><div class="stat-label">Posts este mes</div></div>
           </div>
 
-          <div id="lowBalanceAlert" style="display:none;background:#e8d4d4;color:var(--danger);padding:10px 14px;border-radius:9px;font-size:12px;font-weight:500;margin-bottom:14px">
-            ⚠️ Atención: llevas más de 50.000 tokens este mes. Revisa tu saldo en tu proveedor de IA.
+          <div id="lowBalanceAlert" class="callout" style="display:none">
+            Llevas más de 50.000 tokens este mes. Revisa tu saldo en tu proveedor de IA.
           </div>
 
-          <div style="background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
-            <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px">Historial de uso por post</div>
-            <div id="tokenHistory" style="font-size:12px;line-height:1.8;color:var(--dark);max-height:200px;overflow-y:auto">
-              <span style="color:var(--muted)">Aún no hay datos. Genera un post para empezar a registrar el consumo.</span>
+          <div class="ig-box">
+            <div class="ig-label">Uso por post</div>
+            <div id="tokenHistory" class="token-history">
+              <span class="muted-note">Todavía no hay datos. Genera un post para empezar a registrar el consumo.</span>
             </div>
           </div>
 
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <a id="rechargeLink" href="https://console.anthropic.com/settings/billing" target="_blank" class="btn btn-primary" style="text-decoration:none;font-size:12px">💳 Recargar créditos →</a>
+          <div class="form-actions">
+            <a id="rechargeLink" href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener" class="btn btn-secondary">Recargar créditos</a>
           </div>
 
-          <div style="margin-top:14px;padding:12px;background:var(--cream);border:1px dashed var(--border);border-radius:9px;font-size:11px;color:var(--muted);line-height:1.6">
-            <strong style="color:var(--brown)">Coste estimado:</strong> Es una estimación según el proveedor y el modelo del perfil; el importe real es el de tu proveedor. Un post típico consume entre 2.000 y 4.000 tokens — unos 0,01€ por post.
+          <div class="wp-instructions" style="margin-top:var(--sp-4)">
+            <strong>Coste estimado.</strong> Es una estimación según el proveedor y el modelo del perfil; el importe real es el de tu proveedor. Un post típico consume entre 2.000 y 4.000 tokens, unos 0,01 € por post.
           </div>
         </div>
       </div>
@@ -898,15 +557,15 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 
     <!-- INSTAGRAM SECTION -->
     <div id="settings-instagram" style="display:none">
-      <div class="card" style="margin-bottom:18px">
-        <div class="card-header"><h2>📱 Configuración Instagram</h2><p>Genera contenido de Instagram a partir de cada post</p></div>
+      <div class="card">
+        <div class="card-header"><h2>Instagram</h2><p>Otto prepara el texto de Instagram a partir de cada post.</p></div>
         <div class="card-body">
           <div class="input-group">
-            <label>Usuario de Instagram</label>
+            <label for="igUsername">Usuario de Instagram</label>
             <input type="text" id="igUsername" placeholder="@tu_cuenta"/>
           </div>
           <div class="input-group">
-            <label>Tono para Instagram</label>
+            <label for="igTone">Tono</label>
             <select id="igTone">
               <option value="cercano">Cercano y emotivo</option>
               <option value="inspiracional">Inspiracional y aspiracional</option>
@@ -914,25 +573,20 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
             </select>
           </div>
           <div class="input-group">
-            <label>Hashtags fijos (siempre incluidos)</label>
+            <label for="igFixedHashtags">Hashtags fijos <span class="label-note">Se incluyen siempre.</span></label>
             <input type="text" id="igFixedHashtags" placeholder="#tumarca #tusector" value=""/>
           </div>
           <div class="input-group">
-            <label>CTA fijo para stories</label>
-            <input type="text" id="igStoryCTA" placeholder="👆 Enlace en bio para reservar" value="👆 Enlace en bio para reservar tu sesión"/>
+            <label for="igStoryCTA">Llamada a la acción en stories</label>
+            <input type="text" id="igStoryCTA" placeholder="Enlace en bio para reservar" value="Enlace en bio para reservar tu sesión"/>
           </div>
-          <button class="btn btn-primary" onclick="saveIGConfig()">💾 Guardar configuración</button>
+          <button class="btn btn-primary" onclick="saveIGConfig()">Guardar</button>
           <div class="wp-status" id="igConfigStatus"></div>
 
           <hr class="wp-divider"/>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7;background:var(--cream);border-radius:9px;padding:13px;border:1px dashed var(--border)">
-            <strong style="color:var(--brown)">¿Cómo funciona?</strong><br><br>
-            Después de generar un post, ve a la pestaña <strong>📱 Instagram</strong> del resultado.<br>
-            El agente generará automáticamente:<br>
-            • Caption para post (cuadrado 1:1) con emojis y hashtags<br>
-            • Texto para story (vertical 9:16) con CTA<br>
-            • Sugerencia de imagen del almacén más adecuada<br><br>
-            Copia el contenido y publícalo directamente desde tu móvil en Instagram.
+          <div class="wp-instructions">
+            <strong>Cómo funciona</strong><br>
+            Después de generar un post, abre la pestaña Instagram del resultado. Otto prepara el texto para el post (1:1), el texto para la story (9:16) con la llamada a la acción y la imagen del almacén que mejor encaja. Cópialo y publícalo desde tu móvil.
           </div>
         </div>
       </div>
@@ -943,6 +597,14 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 
 <!-- PAGE: HISTORY -->
 <div class="page" id="page-history">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Historial</h1>
+      <p class="page-sub">Los posts que has guardado.</p>
+    </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="subnav" data-subnav="write" role="tablist" aria-label="Secciones de Otto escribe"></div>
   <div class="stats-row">
     <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Posts guardados</div></div>
     <div class="stat-card"><div class="stat-num" id="statPublished">0</div><div class="stat-label">Publicados</div></div>
@@ -955,15 +617,23 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 
 <!-- PAGE: MEDIA -->
 <div class="page" id="page-media">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Imágenes</h1>
+      <p class="page-sub">La biblioteca de WordPress para ilustrar tus posts.</p>
+    </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="subnav" data-subnav="write" role="tablist" aria-label="Secciones de Otto escribe"></div>
   <div class="media-actions">
-    <button class="btn btn-primary" onclick="loadMedia()">🔄 Cargar imágenes de WordPress</button>
-    <button class="btn btn-secondary" id="tagAllBtn" onclick="tagAllImages()" style="display:none">✨ Etiquetar con IA</button>
-    <button class="btn btn-success" id="insertSelectedBtn" onclick="insertSelectedInPost()" style="display:none">📎 Insertar en post actual</button>
+    <button class="btn btn-primary" onclick="loadMedia()">Cargar imágenes de WordPress</button>
+    <button class="btn btn-secondary" id="tagAllBtn" onclick="tagAllImages()" style="display:none">Etiquetar con IA</button>
+    <button class="btn btn-secondary" id="insertSelectedBtn" onclick="insertSelectedInPost()" style="display:none">Insertar en el post actual</button>
     <span class="selected-count" id="selectedCount"></span>
   </div>
 
   <div class="media-toolbar" id="mediaToolbar" style="display:none">
-    <input type="text" class="media-search" id="mediaSearch" placeholder="Buscar por nombre…" oninput="filterMedia()"/>
+    <input type="text" class="media-search" id="mediaSearch" placeholder="Buscar por nombre" aria-label="Buscar imágenes por nombre" oninput="filterMedia()"/>
     <div class="media-filter" id="mediaFilter">
       <button class="active" onclick="filterByTag('todas',this)">Todas</button>
       <button onclick="filterByTag('newborn',this)">Newborn</button>
@@ -975,34 +645,39 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
     </div>
   </div>
 
-  <div id="mediaEmpty" style="text-align:center;padding:60px;color:var(--muted)">
-    <div style="font-size:44px;margin-bottom:14px;opacity:.3">🖼️</div>
-    <p style="font-size:14px;font-weight:500;margin-bottom:6px">Biblioteca de imágenes</p>
-    <p style="font-size:12px">Pulsa "Cargar imágenes" para conectar con la biblioteca de WordPress del perfil.</p>
+  <div id="mediaEmpty" class="rows-empty">
+    <p>Todavía no has cargado la biblioteca. Pulsa «Cargar imágenes de WordPress» para traerla.</p>
   </div>
 
   <div class="media-grid" id="mediaGrid" style="display:none"></div>
 
   <div class="media-pagination" id="mediaPagination" style="display:none">
-    <button onclick="mediaPage(-1)" id="mediaPrevBtn">← Anterior</button>
+    <button onclick="mediaPage(-1)" id="mediaPrevBtn">Anterior</button>
     <span class="page-info" id="mediaPageInfo">Página 1</span>
-    <button onclick="mediaPage(1)" id="mediaNextBtn">Siguiente →</button>
+    <button onclick="mediaPage(1)" id="mediaNextBtn">Siguiente</button>
   </div>
 </div>
 
 
 <!-- PAGE: CALENDAR -->
 <div class="page" id="page-calendar">
+  <header class="page-head">
+    <div>
+      <h1 class="page-title">Calendario editorial</h1>
+      <p class="page-sub">Los temas que Otto irá proponiendo, en el orden que elijas.</p>
+    </div>
+    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+  </header>
+  <div class="subnav" data-subnav="write" role="tablist" aria-label="Secciones de Otto escribe"></div>
   <div class="cal-manager-grid">
 
     <!-- LEFT: topic list -->
     <div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        <h2 style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400">Calendario editorial</h2>
-        <span id="calCount" style="font-size:12px;color:var(--muted)"></span>
-        <div style="margin-left:auto;display:flex;gap:7px">
-          <button class="btn btn-secondary" style="font-size:11px;padding:6px 12px" onclick="exportCalendarCSV()">⬇️ Exportar CSV</button>
-          <button class="btn btn-primary" style="font-size:11px;padding:6px 12px" onclick="proposeAITopics()">✨ Proponer con IA</button>
+      <div class="tab-bar-row">
+        <span id="calCount" class="muted-note"></span>
+        <div class="row-side" style="margin-left:auto">
+          <button class="btn btn-secondary" onclick="exportCalendarCSV()">Exportar CSV</button>
+          <button class="btn btn-secondary" onclick="proposeAITopics()">Proponer con IA</button>
         </div>
       </div>
       <div class="cal-list" id="calList"></div>
@@ -1011,13 +686,13 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
     <!-- RIGHT: form -->
     <div class="cal-form">
       <div class="cal-form-header">
-        <h3 id="calFormTitle">➕ Añadir tema</h3>
+        <h3 id="calFormTitle">Añadir tema</h3>
       </div>
       <div class="cal-form-body">
         <input type="hidden" id="calEditId"/>
         <div class="input-group">
           <label>Nombre del tema</label>
-          <input type="text" id="calName" placeholder="Ej: Título del tema del post"/>
+          <input type="text" id="calName" placeholder="Por ejemplo: sesión newborn en casa"/>
         </div>
         <div class="input-group">
           <label>Categoría WordPress</label>
@@ -1036,34 +711,33 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
           <label>Temporada</label>
           <select id="calSeason">
             <option value="ninguna">Sin temporada</option>
-            <option value="primavera">🌸 Primavera</option>
-            <option value="verano">☀️ Verano</option>
-            <option value="otoño">🍂 Otoño</option>
-            <option value="invierno">❄️ Invierno</option>
+            <option value="primavera">Primavera</option>
+            <option value="verano">Verano</option>
+            <option value="otoño">Otoño</option>
+            <option value="invierno">Invierno</option>
           </select>
         </div>
         <div class="input-group">
-          <label>Ángulo / enfoque</label>
-          <textarea id="calAngle" rows="3" placeholder="Qué destacar, a quién va dirigido, CTA…"></textarea>
+          <label>Enfoque</label>
+          <textarea id="calAngle" rows="3" placeholder="Qué destacar, a quién va dirigido, qué quieres que haga el lector"></textarea>
         </div>
-        <div style="display:flex;gap:7px">
-          <button class="btn btn-primary" style="flex:1" onclick="saveCalTopic()">Guardar tema</button>
+        <div class="row-side">
+          <button class="btn btn-primary" onclick="saveCalTopic()">Guardar tema</button>
           <button class="btn btn-secondary" onclick="resetCalForm()">Cancelar</button>
         </div>
 
-        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0"/>
+        <hr class="wp-divider"/>
 
         <!-- IMPORT CSV -->
-        <h4 style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Importar desde CSV</h4>
+        <h4 class="sub-h">Importar desde CSV</h4>
         <div class="import-area" onclick="document.getElementById('csvInput').click()">
-          <div style="font-size:24px">📄</div>
-          <p>Haz clic para subir un CSV<br>Columnas: nombre, categoria, temporada, angulo</p>
+          <p>Sube un archivo CSV con las columnas: nombre, categoria, temporada, angulo</p>
         </div>
         <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="importCSV(event)"/>
 
         <!-- AI PROPOSALS -->
         <div id="aiProposalsSection" style="display:none">
-          <h4 style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">✨ Propuestas de la IA</h4>
+          <h4 class="sub-h">Propuestas de la IA</h4>
           <div class="ai-proposals" id="aiProposalsList"></div>
         </div>
       </div>
@@ -1076,59 +750,59 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
 <div class="page" id="page-help">
   <div style="max-width:780px;margin:0 auto">
 
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <header class="page-head">
       <div>
-        <h1 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400">Manual de uso</h1>
-        <p style="font-size:12px;color:var(--muted);margin-top:4px">Agente de Contenidos</p>
+        <h1 class="page-title">Manual de uso</h1>
+        <p class="page-sub">Cómo sacar partido a Otto, paso a paso.</p>
       </div>
-      <button class="btn btn-primary" onclick="downloadManualPDF()">⬇️ Descargar PDF</button>
-    </div>
+      <div class="page-actions"><button class="btn btn-secondary" onclick="downloadManualPDF()">Descargar PDF</button></div>
+    </header>
 
     <div id="manualContent">
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>🚀 Primeros pasos</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Primeros pasos</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
           <p>El agente se abre con una pantalla de <strong>login</strong>: entra con tu email y contraseña, o crea una cuenta nueva.</p>
-          <p style="margin-top:10px">Cada <strong>perfil</strong> es un cliente o negocio, con su propia voz, base de conocimiento, WordPress y claves de IA. Cámbialo desde el selector de arriba. En ⚙️ Configuración completa el perfil, conecta WordPress y pega tu API Key del proveedor de IA que prefieras.</p>
+          <p style="margin-top:10px">Cada <strong>perfil</strong> es un cliente o negocio, con su propia voz, base de conocimiento, WordPress y claves de IA. Cámbialo desde el selector de arriba. En Configuración completa el perfil, conecta WordPress y pega tu API Key del proveedor de IA que prefieras.</p>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>✍️ Generar un post</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Generar un post</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
           <p><strong>1. Selecciona la temporada</strong> (opcional) — filtra el calendario por Primavera, Verano, Otoño o Invierno para ver los temas más relevantes en cada época.</p>
-          <p style="margin-top:8px"><strong>2. Elige un tema del calendario</strong> — haz clic sobre cualquier tema para seleccionarlo. Los marcados con ✓ ya fueron generados anteriormente.</p>
+          <p style="margin-top:8px"><strong>2. Elige un tema del calendario</strong> — haz clic sobre cualquier tema para seleccionarlo. Los marcados como «Escrito» ya se generaron antes.</p>
           <p style="margin-top:8px"><strong>3. O usa "Tema libre"</strong> — escribe cualquier tema personalizado, añade un enfoque y elige la longitud del post.</p>
-          <p style="margin-top:8px"><strong>4. Pulsa "Generar post completo"</strong> — en 20-30 segundos tendrás el post listo con SEO, texto, HTML y sugerencias de imágenes.</p>
+          <p style="margin-top:8px"><strong>4. Pulsa «Generar»</strong> — en 20-30 segundos tendrás el post listo con SEO, texto, HTML y sugerencias de imágenes.</p>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>📋 Las pestañas del resultado</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
-          <p><strong>🔍 SEO</strong> — título optimizado (55-60 caracteres), slug URL, meta descripción, keyword principal, keywords secundarias, categoría y tags para WordPress.</p>
-          <p style="margin-top:8px"><strong>📄 Post</strong> — texto completo en formato legible para revisar el contenido.</p>
-          <p style="margin-top:8px"><strong>✏️ Editar</strong> — editor de texto donde puedes modificar el post directamente. Pulsa "Actualizar HTML" para aplicar los cambios.</p>
-          <p style="margin-top:8px"><strong>💻 HTML</strong> — código HTML listo para pegar en WordPress. Puedes copiarlo con el botón "Copiar HTML".</p>
-          <p style="margin-top:8px"><strong>👁️ Preview</strong> — vista previa del post con las imágenes insertadas, tal como se verá en WordPress.</p>
-          <p style="margin-top:8px"><strong>📸 Imágenes</strong> — fotos sugeridas automáticamente de tu biblioteca de WordPress. Las 3 primeras se preseleccionan. Haz clic para seleccionar o deseleccionar. Pulsa "Insertar en el post" para distribuirlas a lo largo del contenido.</p>
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Las pestañas del resultado</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
+          <p><strong>SEO</strong> — título optimizado (55-60 caracteres), slug URL, meta descripción, keyword principal, keywords secundarias, categoría y tags para WordPress.</p>
+          <p style="margin-top:8px"><strong>Post</strong> — texto completo en formato legible para revisar el contenido.</p>
+          <p style="margin-top:8px"><strong>Editar</strong> — editor de texto donde puedes modificar el post directamente. Pulsa "Actualizar HTML" para aplicar los cambios.</p>
+          <p style="margin-top:8px"><strong>HTML</strong> — código HTML listo para pegar en WordPress. Puedes copiarlo con el botón "Copiar HTML".</p>
+          <p style="margin-top:8px"><strong>Preview</strong> — vista previa del post con las imágenes insertadas, tal como se verá en WordPress.</p>
+          <p style="margin-top:8px"><strong>Imágenes</strong> — fotos sugeridas automáticamente de tu biblioteca de WordPress. Las 3 primeras se preseleccionan. Haz clic para seleccionar o deseleccionar. Pulsa "Insertar en el post" para distribuirlas a lo largo del contenido.</p>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>🖼️ Biblioteca de imágenes</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Biblioteca de imágenes</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
           <p>Antes de generar posts, carga las imágenes una vez por sesión pulsando <strong>"Cargar imágenes de WordPress"</strong>. El agente descarga las fotos de tu biblioteca y las clasifica automáticamente por categoría.</p>
           <p style="margin-top:8px">Usa los <strong>filtros</strong> para ver solo Newborn, Embarazo, Familias, etc. Puedes buscar por nombre de archivo con el buscador.</p>
-          <p style="margin-top:8px">El botón <strong>"✨ Etiquetar con IA"</strong> analiza los nombres de archivo y asigna categoría y alt text SEO automáticamente a todas las imágenes.</p>
+          <p style="margin-top:8px">El botón <strong>"Etiquetar con IA"</strong> analiza los nombres de archivo y asigna categoría y alt text SEO automáticamente a todas las imágenes.</p>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>🔗 Publicar en WordPress</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
-          <p>Ve a la pestaña <strong>🔗 WordPress</strong>. Las credenciales se rellenan automáticamente con tu sesión. Puedes elegir entre:</p>
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Publicar en WordPress</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
+          <p>Ve a la pestaña <strong>WordPress</strong>. Las credenciales se rellenan automáticamente con tu sesión. Puedes elegir entre:</p>
           <p style="margin-top:8px"><strong>Borrador</strong> — el post se guarda sin publicar para revisarlo en WordPress antes.</p>
           <p style="margin-top:8px"><strong>Publicar directamente</strong> — el post se publica inmediatamente en el blog.</p>
           <p style="margin-top:8px"><strong>Programar</strong> — elige fecha y hora de publicación futura.</p>
@@ -1136,33 +810,33 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>📅 Gestionar el calendario</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
-          <p>En la pestaña <strong>📅 Calendario</strong> puedes gestionar todos los temas editoriales:</p>
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Gestionar el calendario</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
+          <p>En la pestaña <strong>Calendario</strong> puedes gestionar todos los temas editoriales:</p>
           <p style="margin-top:8px"><strong>Añadir temas</strong> — usa el formulario de la derecha. Indica nombre, categoría, temporada y enfoque.</p>
-          <p style="margin-top:8px"><strong>Reordenar</strong> — arrastra los temas con el icono ⠿ para cambiar su orden. Las semanas se actualizan automáticamente.</p>
+          <p style="margin-top:8px"><strong>Reordenar</strong> — arrastra los temas con el icono de puntos para cambiar su orden. Las semanas se actualizan automáticamente.</p>
           <p style="margin-top:8px"><strong>Importar CSV</strong> — sube un archivo CSV con columnas: nombre, categoria, temporada, angulo.</p>
           <p style="margin-top:8px"><strong>Proponer con IA</strong> — Claude analiza los temas existentes y sugiere 8 nuevos temas relevantes para tu negocio.</p>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>📚 Historial</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
-          <p>Cada post generado puede guardarse pulsando <strong>"💾 Guardar"</strong>. El historial muestra estadísticas de posts guardados, publicados, borradores y posts de este mes.</p>
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Historial</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
+          <p>Cada post generado puede guardarse pulsando <strong>"Guardar"</strong>. El historial muestra estadísticas de posts guardados, publicados, borradores y posts de este mes.</p>
           <p style="margin-top:8px">Desde el historial puedes <strong>cargar</strong> un post anterior para editarlo o republicarlo, <strong>copiar el HTML</strong>, ver el enlace en WordPress o eliminarlo.</p>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><h2>💡 Consejos de uso</h2></div>
-        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--dark)">
-          <p>🗓️ <strong>Frecuencia recomendada:</strong> 1 post cada 2 semanas siguiendo el calendario editorial.</p>
-          <p style="margin-top:8px">🖼️ <strong>Imágenes:</strong> carga la biblioteca al inicio de cada sesión para que las sugerencias funcionen correctamente.</p>
-          <p style="margin-top:8px">✏️ <strong>Revisión:</strong> siempre revisa el post en la pestaña "Post" antes de publicar. La IA es muy buena pero tú conoces mejor a tus clientes.</p>
-          <p style="margin-top:8px">📸 <strong>Preview:</strong> usa la vista previa para comprobar cómo quedan las imágenes distribuidas antes de publicar.</p>
-          <p style="margin-top:8px">💾 <strong>Guarda los posts:</strong> pulsa "Guardar" antes de publicar para tener un historial de todo el contenido generado.</p>
+      <div class="card" style="margin-bottom:var(--sp-4)">
+        <div class="card-header"><h2>Consejos de uso</h2></div>
+        <div class="card-body" style="font-size:13px;line-height:1.8;color:var(--text)">
+          <p><strong>Frecuencia recomendada:</strong> 1 post cada 2 semanas siguiendo el calendario editorial.</p>
+          <p style="margin-top:8px"><strong>Imágenes:</strong> carga la biblioteca al inicio de cada sesión para que las sugerencias funcionen correctamente.</p>
+          <p style="margin-top:8px"><strong>Revisión:</strong> siempre revisa el post en la pestaña "Post" antes de publicar. La IA es muy buena pero tú conoces mejor a tus clientes.</p>
+          <p style="margin-top:8px"><strong>Preview:</strong> usa la vista previa para comprobar cómo quedan las imágenes distribuidas antes de publicar.</p>
+          <p style="margin-top:8px"><strong>Guarda los posts:</strong> pulsa "Guardar" antes de publicar para tener un historial de todo el contenido generado.</p>
         </div>
       </div>
 
@@ -1170,7 +844,7 @@ header{background:var(--warm-white);border-bottom:1px solid var(--border);paddin
   </div>
 </div>
 
-  </div><!-- /app-content -->
+  </main>
 </div><!-- /appShell -->
 
 <div class="toast" id="toast"></div>
@@ -1184,7 +858,7 @@ let selectedTopic=null,currentMode='calendar',currentSeason='ninguna',generatedD
 let history=[];
 let wpConfig={};
 let doneTopics=[];
-const seasonEmoji={primavera:'🌸',verano:'☀️',otoño:'🍂',invierno:'❄️',ninguna:'🗓️'};
+const seasonEmoji={primavera:'',verano:'',otoño:'',invierno:'',ninguna:''};
 const seasonLabel={primavera:'Primavera',verano:'Verano',otoño:'Otoño',invierno:'Invierno',ninguna:'Sin temporada'};
 
 function init(){
@@ -1221,7 +895,7 @@ function setSeason(s,el){
   currentSeason=s;
   document.querySelectorAll('.season-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('seasonBadge').textContent=seasonEmoji[s]+' '+seasonLabel[s];
+  document.getElementById('seasonBadge').textContent=seasonLabel[s];
   initTopicGrid();
 }
 
@@ -1233,7 +907,7 @@ function initTopicGrid(){
     const card=document.createElement('div');
     card.className='topic-card'+(done?' done':'');
     card.id=`topic-${t.id}`;card.onclick=()=>selectTopic(t.id);
-    const badge=done?`<span class="tbadge done-lbl">✓</span>`:t.season?`<span class="tbadge season">${seasonEmoji[t.season]}</span>`:'';
+    const badge=done?`<span class="tbadge done-lbl">Escrito</span>`:t.season?`<span class="tbadge season">${seasonLabel[t.season]||''}</span>`:'';
     card.innerHTML=`${badge}<div class="tn">${t.name}</div><div class="tm">${t.cat} · ${t.week}</div>`;
     grid.appendChild(card);
   });
@@ -1275,7 +949,7 @@ async function generatePost(){
   document.getElementById('loadingState').classList.add('visible');
   document.getElementById('resultBody').classList.remove('visible');
   document.getElementById('outputTabs').style.display='none';
-  document.getElementById('outputActions').style.display='none';
+  document.getElementById('outputActions').style.display='none';var _ph=document.getElementById('publishHeadBtn');if(_ph)_ph.style.display='none';
 
   let mi=0;
   const iv=setInterval(()=>{document.getElementById('loadingMsg').textContent=loadingMsgs[Math.min(mi++,loadingMsgs.length-1)];},2000);
@@ -1334,7 +1008,7 @@ FORMATO: Solo JSON válido, sin backticks:
     clearInterval(iv);
     document.getElementById('loadingState').classList.remove('visible');
     document.getElementById('emptyState').style.display='flex';
-    document.getElementById('emptyState').innerHTML=`<div class="empty-icon">⚠️</div><h3>Error al generar</h3><p>${e.message}</p>`;
+    document.getElementById('emptyState').innerHTML=`<h3>No se ha podido generar el post</h3><p>${String(e.message).replace(/[<>&]/g,'')}</p>`;
     showToast('Error al generar el post','error');
   } finally { document.getElementById('generateBtn').disabled=false; }
 }
@@ -1344,7 +1018,7 @@ function renderResult(d){
   document.getElementById('resultBody').classList.add('visible');
   document.getElementById('outputTabs').style.display='flex';
   document.getElementById('outputActions').style.display='flex';
-  document.getElementById('outputTitle').textContent='Post generado ✓';
+  document.getElementById('outputTitle').textContent='Post generado'; var ph=document.getElementById('publishHeadBtn'); if(ph) ph.style.display='';
   document.getElementById('outTitle').textContent=d.titulo_seo||'—';
   document.getElementById('outSlug').textContent='/'+(d.slug||'—');
   document.getElementById('outMeta').textContent=d.meta_descripcion||'—';
@@ -1371,7 +1045,7 @@ function renderResult(d){
       suggestImagesForPost();
     } else {
       const grid = document.getElementById('suggestedImgGrid');
-      if (grid) grid.innerHTML = '<p style="font-size:12px;color:var(--muted);padding:8px 0">Carga primero las imágenes en la pestaña 🖼️ Imágenes y luego vuelve aquí.</p>';
+      if (grid) grid.innerHTML = '<p class="muted-note">Carga primero las imágenes en Imágenes y luego vuelve aquí.</p>';
     }
   }, 400);
 }
@@ -1392,7 +1066,7 @@ function showResultTabById(tab){
 function copyContent(type){
   if(!generatedData) return;
   navigator.clipboard.writeText(type==='html'?generatedData.post_html:generatedData.post_texto||'');
-  showToast('✓ Copiado al portapapeles');
+  showToast('Copiado al portapapeles');
 }
 
 function saveToHistory(){
@@ -1405,9 +1079,13 @@ function saveToHistory(){
     localStorage.setItem('ps_done_topics',JSON.stringify(doneTopics));
     initTopicGrid();
   }
-  updateBadges();showToast('✓ Post guardado','success');
+  updateBadges();showToast('Post guardado','success');
 }
 
+function rowMenu(id,items){
+  return `<div class="row-more"><button type="button" class="icon-btn" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false" onclick="OttoHome.toggleMenu(event,'${id}')"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button>
+    <div class="menu menu-down" id="${id}" role="menu">${items.map(m=>`<button type="button" class="menu-item${m.danger?' danger':''}" role="menuitem" onclick="${m.onclick}">${esc(m.label)}</button>`).join('')}</div></div>`;
+}
 function renderHistory(){
   const grid=document.getElementById('historyGrid');
   const total=history.length,published=history.filter(h=>h.status==='published').length;
@@ -1417,33 +1095,20 @@ function renderHistory(){
   document.getElementById('statPublished').textContent=published;
   document.getElementById('statDrafts').textContent=total-published;
   document.getElementById('statMonth').textContent=month;
-  if(!total){grid.innerHTML=`<div class="history-empty"><p style="font-size:36px;margin-bottom:10px;opacity:.3">📭</p><p>Aún no hay posts guardados.</p></div>`;return;}
-  grid.innerHTML='';
-  history.forEach((post,i)=>{
+  if(!total){grid.innerHTML=`<div class="rows-empty"><p>Todavía no has guardado ningún post.</p><button class="btn btn-primary" onclick="showPage('write')">Escribir un post</button></div>`;return;}
+  grid.innerHTML='<ul class="rows">'+history.map((post,i)=>{
     const d=new Date(post.generatedAt);
-    const dateStr=d.toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-    const stBg=post.status==='published'?'#d4e8dc':'#f0e8dc';
-    const stColor=post.status==='published'?'var(--success)':'var(--warning)';
-    const stLabel=post.status==='published'?'✓ Publicado':'📋 Borrador';
-    const sTag=post.season&&post.season!=='ninguna'?`<span class="hc-tag">${seasonEmoji[post.season]}</span>`:'';
-    const wpLink=post.wpLink?`<a href="${post.wpLink}" target="_blank" class="btn btn-secondary" style="padding:5px 10px;font-size:11px;text-decoration:none;display:inline-block">Ver →</a>`:'';
-    const card=document.createElement('div');card.className='history-card';
-    card.innerHTML=`
-      <div class="hc-date">${dateStr}</div>
-      <div class="hc-title">${post.titulo_seo||'—'}</div>
-      <div class="hc-meta">
-        <span class="hc-tag">${post.categoria_wordpress||'—'}</span>${sTag}
-        <span style="background:${stBg};color:${stColor};padding:2px 7px;border-radius:9px;font-size:10px;font-weight:500">${stLabel}</span>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:11px;line-height:1.5">${(post.meta_descripcion||'').slice(0,85)}…</div>
-      <div class="hc-actions">
-        <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px" onclick="loadFromHistory(${i})">Cargar</button>
-        <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px" onclick="copyHistoryHTML(${i})">HTML</button>
-        ${wpLink}
-        <button class="btn btn-secondary" style="padding:5px 10px;font-size:11px;color:var(--danger);border-color:var(--danger)" onclick="deleteHistory(${i})">✕</button>
-      </div>`;
-    grid.appendChild(card);
-  });
+    const dateStr=isNaN(d)?'':d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
+    const pub=post.status==='published';
+    const season=post.season&&post.season!=='ninguna'?(seasonLabel[post.season]||''):'';
+    const meta=[dateStr,post.categoria_wordpress,season,pub?'Publicado':'Borrador'].filter(Boolean).map(esc).join(' · ');
+    const items=[{label:'Copiar HTML',onclick:`copyHistoryHTML(${i})`}];
+    if(post.wpLink&&/^https?:\/\//.test(post.wpLink)) items.push({label:'Ver en WordPress',onclick:`window.open(history[${i}].wpLink,'_blank','noopener')`});
+    items.push({label:'Eliminar',danger:true,onclick:`deleteHistory(${i})`});
+    return `<li class="row"><span class="dot ${pub?'dot-accent':''}" aria-hidden="true"></span>
+      <div class="row-main"><div class="row-title">${esc(post.titulo_seo||'Sin título')}</div><div class="row-meta">${meta}</div></div>
+      <div class="row-side"><button class="btn btn-secondary" onclick="loadFromHistory(${i})">Abrir</button>${rowMenu('hm'+i,items)}</div></li>`;
+  }).join('')+'</ul>';
 }
 
 function loadFromHistory(i){
@@ -1452,14 +1117,14 @@ function loadFromHistory(i){
   document.querySelectorAll('.nav-btn').forEach((b,idx)=>b.classList.toggle('active',idx===0));
   showToast('Post cargado');
 }
-function copyHistoryHTML(i){navigator.clipboard.writeText(history[i].post_html||'');showToast('✓ HTML copiado');}
+function copyHistoryHTML(i){navigator.clipboard.writeText(history[i].post_html||'');showToast('HTML copiado');}
 function deleteHistory(i){if(!confirm('¿Eliminar?'))return;history.splice(i,1);localStorage.setItem('ps_history',JSON.stringify(history));renderHistory();updateBadges();}
-function updateBadges(){document.getElementById('historyBadge').textContent=`📝 ${history.length} posts guardados`;}
+function updateBadges(){document.getElementById('historyBadge').textContent=`${history.length} posts guardados`;}
 
 function saveWPConfig(){
   wpConfig={url:document.getElementById('wpUrl').value.trim().replace(/\/$/,''),user:document.getElementById('wpUser').value.trim(),pass:document.getElementById('wpPass').value.trim()};
   localStorage.setItem('ps_wp_config',JSON.stringify(wpConfig));
-  showWPStatus('wpStatus','✓ Configuración guardada','success');
+  showWPStatus('wpStatus','Configuración guardada','success');
 }
 // ── JWT Token ─────────────────────────────────────
 let jwtToken = null;
@@ -1498,9 +1163,9 @@ async function testWPConnection(){
   try{
     await getJWTToken(url,user,pass);
     const d=await wpProxy('users/me');
-    if(d.name||d.slug){showWPStatus('wpStatus',`✓ Conectado como: ${d.name||user}`,'success');}
-    else showWPStatus('wpStatus',`✗ ${d.message||JSON.stringify(d)}`,'error');
-  }catch(e){showWPStatus('wpStatus',`✗ ${e.message}`,'error');}
+    if(d.name||d.slug){showWPStatus('wpStatus',`Conectado como: ${d.name||user}`,'success');}
+    else showWPStatus('wpStatus',`${d.message||JSON.stringify(d)}`,'error');
+  }catch(e){showWPStatus('wpStatus',`${e.message}`,'error');}
 }
 
 function toggleSchedule(v){document.getElementById('scheduleRow').style.display=v==='future'?'block':'none';}
@@ -1518,7 +1183,7 @@ async function publishToWordPress(){
   const url=(document.getElementById('wpUrl').value||wpConfig.url||'').trim().replace(/\/$/,'');
   const user=(document.getElementById('wpUser').value||wpConfig.user||'').trim();
   const pass=(document.getElementById('wpPass').value||wpConfig.pass||'').trim();
-  if(!url||!user||!pass){showWPStatus('publishStatus','⚠️ Configura las credenciales','error');return;}
+  if(!url||!user||!pass){showWPStatus('publishStatus','Configura las credenciales','error');return;}
   const status=document.getElementById('wpStatus2').value;
   const postBody={title:generatedData.titulo_seo||'',content:generatedData.post_html||'',slug:generatedData.slug||'',excerpt:generatedData.meta_descripcion||'',status};
   if(status==='future'){const sc=document.getElementById('wpSchedule').value;if(sc) postBody.date=new Date(sc).toISOString();}
@@ -1529,11 +1194,11 @@ async function publishToWordPress(){
     if(d.id){
       const link=d.link||`${url}/?p=${d.id}`;
       const sl=status==='publish'?'publicado':status==='future'?'programado':'guardado como borrador';
-      showWPStatus('publishStatus',`✓ Post ${sl}. <a href="${link}" target="_blank" style="color:var(--success);text-decoration:underline">Ver en WordPress →</a>`,'success');
+      showWPStatus('publishStatus',`Post ${sl}. <a href="${link}" target="_blank" style="color:var(--success);text-decoration:underline">Ver en WordPress →</a>`,'success');
       if(status==='publish'){generatedData.status='published';generatedData.wpLink=link;const i=history.findIndex(h=>h.titulo_seo===generatedData.titulo_seo);if(i>=0){history[i]=generatedData;localStorage.setItem('ps_history',JSON.stringify(history));}}
-      showToast('✓ Publicado en WordPress','success');
-    } else showWPStatus('publishStatus',`✗ Error: ${d.message||JSON.stringify(d)}`,'error');
-  }catch(e){showWPStatus('publishStatus',`✗ ${e.message}`,'error');}
+      showToast('Publicado en WordPress','success');
+    } else showWPStatus('publishStatus',`Error: ${d.message||JSON.stringify(d)}`,'error');
+  }catch(e){showWPStatus('publishStatus',`${e.message}`,'error');}
   finally{btn.disabled=false;btn.textContent='Publicar en WordPress';}
 }
 function showWPStatus(id,msg,type){const el=document.getElementById(id);el.className='wp-status '+type;el.innerHTML=msg;el.style.display='block';}
@@ -1570,7 +1235,7 @@ function syncEditorToHTML() {
   generatedData.post_html = html;
   document.getElementById('outHTML').textContent = html;
   document.getElementById('outPostText').textContent = text;
-  showToast('✓ HTML actualizado desde el editor', 'success');
+  showToast('HTML actualizado desde el editor', 'success');
 }
 
 // ═══════════════════════════════
@@ -1579,12 +1244,12 @@ function syncEditorToHTML() {
 function refreshPreview() {
   const el = document.getElementById('postPreview');
   if (!generatedData || !el) return;
-  const html = generatedData.post_html || '<p style="color:var(--muted)">Genera un post para ver la preview.</p>';
+  const html = generatedData.post_html || '<p style="color:var(--text-muted)">Genera un post para ver la preview.</p>';
   el.innerHTML = `
-    <h1 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;margin-bottom:20px;color:var(--dark)">${generatedData.titulo_seo||''}</h1>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;margin-bottom:20px;color:var(--text)">${generatedData.titulo_seo||''}</h1>
     ${html}
     <hr style="border:none;border-top:1px solid var(--border);margin:24px 0">
-    <p style="font-size:12px;color:var(--muted)">📌 ${generatedData.categoria_wordpress||''} · 🔑 ${generatedData.keyword_principal||''}</p>
+    <p style="font-size:12px;color:var(--text-muted)">${generatedData.categoria_wordpress||''} · ${generatedData.keyword_principal||''}</p>
   `;
 }
 
@@ -1617,7 +1282,7 @@ async function suggestImagesForPost() {
   if (!grid) return;
 
   if (!matches.length) {
-    grid.innerHTML = '<p style="font-size:12px;color:var(--muted)">Carga primero las imágenes en la pestaña 🖼️ Imágenes.</p>';
+    grid.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">Carga primero las imágenes en la pestaña Imágenes.</p>';
     return;
   }
 
@@ -1634,7 +1299,7 @@ async function suggestImagesForPost() {
       <img src="${img.thumbnail}" alt="${img.alt||img.filename}" loading="lazy"/>
       <div class="si-info">
         <div class="si-name">${img.filename}</div>
-        ${i < 3 ? '<div class="si-match">✓ Sugerida</div>' : ''}
+        ${i < 3 ? '<div class="si-match">Sugerida</div>' : ''}
       </div>
     `;
     grid.appendChild(div);
@@ -1694,7 +1359,7 @@ function insertSuggestedIntoPost() {
   }
 
   document.getElementById('outHTML').textContent = generatedData.post_html;
-  showToast(`✓ ${selectedSuggested.length} imagen${selectedSuggested.length > 1 ? 'es' : ''} distribuida${selectedSuggested.length > 1 ? 's' : ''} en el post`, 'success');
+  showToast(`${selectedSuggested.length} imagen${selectedSuggested.length > 1 ? 'es' : ''} distribuida${selectedSuggested.length > 1 ? 's' : ''} en el post`, 'success');
   selectedSuggested = [];
   updateSuggestedSelection();
   // Refresh preview if visible
@@ -1748,12 +1413,12 @@ async function doLogin() {
 
       // Update UI
       document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('userBadgeName').textContent = '👤 ' + currentUser.name;
+      document.getElementById('userBadgeName').textContent = '' + currentUser.name;
       document.getElementById('wpUrl').value = wpUrl;
       document.getElementById('wpUser').value = user;
       document.getElementById('wpPass').value = pass;
 
-      showToast('✓ Bienvenida, ' + currentUser.name, 'success');
+      showToast('Bienvenida, ' + currentUser.name, 'success');
     } else {
       err.textContent = data.message || 'Usuario o contraseña incorrectos';
       err.classList.add('visible');
@@ -1781,7 +1446,7 @@ function checkSession() {
     jwtToken = currentUser.token;
     wpConfig = { url: currentUser.wpUrl, user: currentUser.user, pass: wpConfig.pass || '' };
     document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('userBadgeName').textContent = '👤 ' + currentUser.name;
+    document.getElementById('userBadgeName').textContent = '' + currentUser.name;
     if (document.getElementById('wpUrl')) document.getElementById('wpUrl').value = currentUser.wpUrl || '';
     if (document.getElementById('wpUser')) document.getElementById('wpUser').value = currentUser.user || '';
     if (document.getElementById('loginWpUrl')) document.getElementById('loginWpUrl').value = currentUser.wpUrl || 'https://paquisirvent.com';
@@ -1897,7 +1562,7 @@ function renderTokenStats() {
     hist.innerHTML = tokenStats.posts.map(p => 
       `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
         <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</span>
-        <span style="color:var(--muted);margin:0 12px;white-space:nowrap">${p.tokens.toLocaleString()} tokens</span>
+        <span style="color:var(--text-muted);margin:0 12px;white-space:nowrap">${p.tokens.toLocaleString()} tokens</span>
         <span style="color:var(--accent);white-space:nowrap">${p.cost}€</span>
       </div>`
     ).join('');
@@ -1926,7 +1591,7 @@ function saveIGConfig() {
     storyCTA: document.getElementById('igStoryCTA')?.value || ''
   };
   localStorage.setItem('ps_ig_config', JSON.stringify(igConfig));
-  showWPStatus('igConfigStatus', '✓ Configuración guardada', 'success');
+  showWPStatus('igConfigStatus', 'Configuración guardada', 'success');
 }
 
 function loadIGConfig() {
@@ -1948,7 +1613,7 @@ async function generateInstagram() {
 
   const username = igConfig.username || '';
   const fixedHashtags = igConfig.fixedHashtags || '';
-  const storyCTA = igConfig.storyCTA || '👆 Enlace en bio para reservar';
+  const storyCTA = igConfig.storyCTA || 'Enlace en bio para reservar';
   const tone = igConfig.tone || 'cercano';
 
   const prompt = `Eres el agente de Instagram de ${ws.name} ${username}. Idioma: ${langName()}.
@@ -2011,7 +1676,7 @@ function suggestIGImage(description) {
   if (!grid) return;
 
   if (!allMedia.length) {
-    grid.innerHTML = '<p style="font-size:11px;color:var(--muted)">Carga las imágenes en 🖼️ Imágenes para ver sugerencias.</p>';
+    grid.innerHTML = '<p class="muted-note">Carga las imágenes en Imágenes para ver sugerencias.</p>';
     return;
   }
 
@@ -2026,7 +1691,7 @@ function suggestIGImage(description) {
 
   const matches = allMedia.filter(img => img.category === targetCat).slice(0, 4);
   if (!matches.length) {
-    grid.innerHTML = '<p style="font-size:11px;color:var(--muted)">No se encontraron imágenes de esta categoría.</p>';
+    grid.innerHTML = '<p class="muted-note">No se encontraron imágenes de esta categoría.</p>';
     return;
   }
 
@@ -2051,7 +1716,7 @@ function copyIG(type) {
     hashtags: igData.hashtags
   };
   navigator.clipboard.writeText(texts[type] || '');
-  showToast('✓ Copiado al portapapeles');
+  showToast('Copiado al portapapeles');
 }
 
 // ═══════════════════════════════
@@ -2106,20 +1771,20 @@ function renderCalList() {
     const done = doneTopics.includes(t.id);
 
     item.innerHTML = `
-      <span class="ci-drag">⠿</span>
+      <span class="ci-drag" aria-hidden="true"><svg class="icon"><use href="#i-grip"/></svg></span>
       <span class="ci-num">${i + 1}</span>
       <div class="ci-body">
-        <div class="ci-name" style="${done ? 'text-decoration:line-through;opacity:.5' : ''}">${t.name}</div>
+        <div class="ci-name${done ? ' is-done' : ''}">${esc(t.name)}</div>
         <div class="ci-meta">
           ${seasonDot}
-          <span>${t.cat}</span>
-          <span>${t.week}</span>
-          ${done ? '<span style="color:var(--success);font-weight:500">✓ Generado</span>' : ''}
+          <span>${esc(t.cat)}</span>
+          <span>${esc(t.week)}</span>
+          ${done ? '<span class="ci-done">Ya escrito</span>' : ''}
         </div>
       </div>
-      <div class="ci-actions">
-        <button class="btn btn-secondary" onclick="editCalTopic(${i})">✏️</button>
-        <button class="btn btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="deleteCalTopic(${i})">✕</button>
+      <div class="row-side">
+        <button class="btn btn-secondary" onclick="editCalTopic(${i})">Editar</button>
+        ${rowMenu('cm' + i, [{ label: 'Eliminar tema', danger: true, onclick: `deleteCalTopic(${i})` }])}
       </div>
     `;
     list.appendChild(item);
@@ -2152,13 +1817,13 @@ function saveCalTopic() {
   saveCalTopics();
   renderCalList();
   resetCalForm();
-  showToast(calEditMode ? '✓ Tema actualizado' : '✓ Tema añadido al calendario', 'success');
+  showToast(calEditMode ? 'Tema actualizado' : 'Tema añadido al calendario', 'success');
 }
 
 function editCalTopic(idx) {
   const t = calTopics[idx];
   calEditMode = true;
-  document.getElementById('calFormTitle').textContent = '✏️ Editar tema';
+  document.getElementById('calFormTitle').textContent = 'Editar tema';
   document.getElementById('calEditId').value = t.id;
   document.getElementById('calName').value = t.name;
   document.getElementById('calCat').value = t.cat;
@@ -2178,7 +1843,7 @@ function deleteCalTopic(idx) {
 
 function resetCalForm() {
   calEditMode = false;
-  document.getElementById('calFormTitle').textContent = '➕ Añadir tema';
+  document.getElementById('calFormTitle').textContent = 'Añadir tema';
   document.getElementById('calEditId').value = '';
   document.getElementById('calName').value = '';
   document.getElementById('calCat').value = 'Bebés';
@@ -2197,7 +1862,7 @@ function exportCalendarCSV() {
   const a = document.createElement('a');
   a.href = url; a.download = 'calendario-paqui-sirvent.csv';
   a.click(); URL.revokeObjectURL(url);
-  showToast('✓ CSV exportado');
+  showToast('CSV exportado');
 }
 
 function importCSV(event) {
@@ -2229,14 +1894,14 @@ function importCSV(event) {
     calTopics.forEach((t, i) => { t.week = `Sem ${(i * 2) + 1}`; });
     saveCalTopics();
     renderCalList();
-    showToast(`✓ ${imported} temas importados`, 'success');
+    showToast(`${imported} temas importados`, 'success');
     event.target.value = '';
   };
   reader.readAsText(file);
 }
 
 async function proposeAITopics() {
-  showToast('✨ Generando propuestas…');
+  showToast('Generando propuestas…');
   const existing = calTopics.map(t => t.name).join(', ');
   const prompt = `Eres el agente de contenidos de ${ws.name}. Idioma: ${langName()}.
 
@@ -2276,7 +1941,7 @@ Responde SOLO con JSON válido sin backticks:
     proposals.forEach(p => {
       const div = document.createElement('div');
       div.className = 'ai-proposal';
-      div.innerHTML = `<span class="ap-add">+</span><div><div style="font-weight:500">${p.nombre}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${p.categoria} ${p.temporada !== 'ninguna' ? '· ' + p.temporada : ''}</div></div>`;
+      div.innerHTML = `<span class="ap-add">+</span><div><div style="font-weight:500">${p.nombre}</div><div class="muted-note" style="margin-top:2px">${p.categoria} ${p.temporada !== 'ninguna' ? '· ' + p.temporada : ''}</div></div>`;
       div.onclick = () => {
         // Pre-fill form with this proposal
         document.getElementById('calName').value = p.nombre;
@@ -2290,7 +1955,7 @@ Responde SOLO con JSON válido sin backticks:
       };
       list.appendChild(div);
     });
-    showToast(`✓ ${proposals.length} propuestas generadas`, 'success');
+    showToast(`${proposals.length} propuestas generadas`, 'success');
   } catch(e) {
     showToast('Error al generar propuestas: ' + e.message, 'error');
   }
@@ -2329,11 +1994,11 @@ async function loadMedia(page = 1) {
   const pass = (wpConfig.pass || document.getElementById('wpPass')?.value || '').trim();
 
   if (!url || !user) {
-    showToast('Primero configura la conexión WordPress en la pestaña 🔗', 'error');
+    showToast('Primero configura la conexión WordPress en la pestaña ', 'error');
     return;
   }
 
-  document.getElementById('mediaEmpty').innerHTML = '<div style="text-align:center;padding:60px"><div class="spinner" style="margin:0 auto 16px"></div><p style="color:var(--muted);font-size:13px">Cargando imágenes…</p></div>';
+  document.getElementById('mediaEmpty').innerHTML = '<div class="spinner" style="margin:0 auto var(--sp-3)"></div><p>Cargando imágenes…</p>';
   document.getElementById('mediaGrid').style.display = 'none';
   document.getElementById('mediaPagination').style.display = 'none';
 
@@ -2364,7 +2029,7 @@ async function loadMedia(page = 1) {
     updatePagination(data.total);
 
   } catch(e) {
-    document.getElementById('mediaEmpty').innerHTML = `<div style="text-align:center;padding:60px;color:var(--muted)"><div style="font-size:40px;margin-bottom:12px">⚠️</div><p>${e.message}</p></div>`;
+    document.getElementById('mediaEmpty').innerHTML = `<p>${esc(e.message)}</p>`;
     document.getElementById('mediaEmpty').style.display = 'block';
   }
 }
@@ -2393,7 +2058,7 @@ function renderMediaGrid() {
   if (!filteredMedia.length) {
     grid.style.display = 'none';
     empty.style.display = 'block';
-    empty.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><p>No hay imágenes con ese filtro.</p></div>';
+    empty.innerHTML = '<p>No hay imágenes con ese filtro.</p>';
     return;
   }
 
@@ -2411,8 +2076,8 @@ function renderMediaGrid() {
     item.id = `media-${img.id}`;
     item.onclick = () => toggleSelectMedia(img);
     item.innerHTML = `
-      <div class="mi-check">✓</div>
-      <img src="${img.thumbnail}" alt="${img.alt || img.filename}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 160 130%22><rect fill=%22%23f5f0eb%22 width=%22160%22 height=%22130%22/><text x=%2280%22 y=%2270%22 text-anchor=%22middle%22 fill=%22%23c4a882%22 font-size=%2230%22>📷</text></svg>'"/>
+      <div class="mi-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></div>
+      <img src="${img.thumbnail}" alt="${img.alt || img.filename}" loading="lazy" onerror="this.style.visibility='hidden'"/>
       <div class="mi-info">
         <div class="mi-name">${img.filename}</div>
         <span class="tag-badge ${tagClass}">${catLabel}</span>
@@ -2468,14 +2133,14 @@ function insertSelectedInPost() {
   }
 
   document.getElementById('outHTML').textContent = generatedData.post_html;
-  showToast(`✓ ${selectedMedia.length} imagen${selectedMedia.length > 1 ? 'es' : ''} insertada${selectedMedia.length > 1 ? 's' : ''} en el post`, 'success');
+  showToast(`${selectedMedia.length} imagen${selectedMedia.length > 1 ? 'es' : ''} insertada${selectedMedia.length > 1 ? 's' : ''} en el post`, 'success');
   selectedMedia = [];
   updateSelectedCount();
 }
 
 async function tagAllImages() {
   if (!allMedia.length) return;
-  showToast('✨ Etiquetando imágenes con IA…');
+  showToast('Etiquetando imágenes con IA…');
 
   // Use Claude to tag images based on filenames and existing alt text
   const imageList = allMedia.map(img => `ID:${img.id} | Archivo:${img.filename} | Alt:${img.alt} | Título:${img.title}`).join('\n');
@@ -2510,7 +2175,7 @@ Responde SOLO con JSON válido sin backticks:
     });
 
     filterMedia();
-    showToast(`✓ ${tags.length} imágenes etiquetadas`, 'success');
+    showToast(`${tags.length} imágenes etiquetadas`, 'success');
   } catch(e) {
     showToast('Error al etiquetar: ' + e.message, 'error');
   }
@@ -2539,185 +2204,286 @@ function mediaPage(dir) {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.0/dist/umd/supabase.js"></script>
 <script src="i18n-es.js"></script>
 <script src="saas.js"></script>
-<script src="modules-mockup.js"></script>
 <script>
-// Gestión simple de temas sin app-core
-(function() {
-  const themes = ['claro-sobrio', 'oscuro', 'calido'];
-  const themeIcons = { 'claro-sobrio': '☀️', 'oscuro': '🌙', 'calido': '🔥' };
-  const themeNames = { 'claro-sobrio': 'Claro', 'oscuro': 'Oscuro', 'calido': 'Cálido' };
+/* ============================================================
+   Otto · marco de la app: temas, navegación y menús
+   ============================================================ */
+(function () {
+  const THEMES = ['claro', 'oscuro', 'corporativo'];
+  const LEGACY = { 'claro-sobrio': 'claro', 'calido': 'corporativo' };
 
   function getTheme() {
-    try { return localStorage.getItem('otto_theme') || 'claro-sobrio'; } catch { return 'claro-sobrio'; }
+    try {
+      let t = localStorage.getItem('otto_theme');
+      t = LEGACY[t] || t;
+      return THEMES.includes(t) ? t : 'claro';
+    } catch { return 'claro'; }
   }
 
-  function setTheme(name) {
+  window.setTheme = function (name) {
+    if (!THEMES.includes(name)) name = 'claro';
     document.documentElement.setAttribute('data-theme', name);
-    try { localStorage.setItem('otto_theme', name); } catch {}
-    updateButton();
-  }
-
-  function updateButton() {
-    const btn = document.getElementById('themeBtn');
-    if (btn) {
-      const current = getTheme();
-      btn.innerHTML = themeIcons[current] + ' ' + themeNames[current];
-    }
-  }
-
-  window.cycleTheme = function() {
-    const current = getTheme();
-    const idx = themes.indexOf(current);
-    const next = themes[(idx + 1) % themes.length];
-    setTheme(next);
+    try { localStorage.setItem('otto_theme', name); } catch { }
+    document.querySelectorAll('[data-theme-option]').forEach(el =>
+      el.setAttribute('aria-checked', el.dataset.themeOption === name ? 'true' : 'false'));
   };
-
-  // Inicializar
   setTheme(getTheme());
+
+  /* ── Menú de cuenta ── */
+  window.toggleUserMenu = function (ev) {
+    if (ev) ev.stopPropagation();
+    const menu = document.getElementById('userMenu'), btn = document.getElementById('userBtn');
+    const open = !menu.classList.contains('open');
+    menu.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+  window.closeMenus = function () {
+    const menu = document.getElementById('userMenu'), btn = document.getElementById('userBtn');
+    if (menu) menu.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  };
+  document.addEventListener('click', e => { if (!e.target.closest('.sidebar-foot')) closeMenus(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeMenus(); closeMore(); } });
+
+  /* ── Hoja "Más" (móvil) ── */
+  window.openMore = function () {
+    document.getElementById('moreSheet').classList.add('open');
+    document.getElementById('sheetBackdrop').classList.add('open');
+  };
+  window.closeMore = function () {
+    document.getElementById('moreSheet').classList.remove('open');
+    document.getElementById('sheetBackdrop').classList.remove('open');
+  };
 })();
 
-// Función para toggle user menu
-function toggleUserMenuSidebar() {
-  const dropdown = document.getElementById('userMenuDropdown');
-  if (dropdown) dropdown.classList.toggle('hidden');
-}
+/* ── Navegación entre pantallas ── */
+// Las pantallas que cuelgan de Otto escribe dejan marcado ese módulo en el menú
+const PAGE_MODULE = { write: 'write', calendar: 'write', history: 'write', media: 'write', help: 'help' };
+const PAGE_ALIAS = { generate: 'write' };
+const WRITE_SECTIONS = [
+  ['write', 'Escribir'], ['calendar', 'Calendario'], ['history', 'Historial'], ['media', 'Imágenes']
+];
 
-// Mejorar showPage para la nueva estructura
-const originalShowPage = showPage;
-showPage = function(pageId, btn) {
-  // Actualizar nav items del sidebar
-  document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.getAttribute('data-page') === pageId) {
-      item.classList.add('active');
-    } else {
-      item.classList.remove('active');
-    }
+// Sub-menú de Otto escribe (una sola definición para las cuatro pantallas)
+document.querySelectorAll('[data-subnav="write"]').forEach(box => {
+  const page = box.closest('.page').id.replace('page-', '');
+  box.innerHTML = WRITE_SECTIONS.map(([id, label]) =>
+    `<button role="tab" data-section="${id}" aria-selected="${id === page}" class="${id === page ? 'active' : ''}" onclick="showPage('${id}')">${label}</button>`
+  ).join('');
+});
+
+const baseShowPage = showPage;   // la original de V12: pinta historial, calendario y pestañas de ajustes
+showPage = function (pageId) {
+  pageId = PAGE_ALIAS[pageId] || pageId;
+  if (!document.getElementById('page-' + pageId)) pageId = 'home';
+  baseShowPage(pageId);
+
+  const mod = PAGE_MODULE[pageId] || pageId;
+  document.querySelectorAll('[data-module]').forEach(el => {
+    const on = el.dataset.module === mod;
+    el.classList.toggle('active', on);
+    if (on) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
+  });
+  document.querySelectorAll('.subnav button').forEach(b => {
+    const on = b.dataset.section === pageId;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
   });
 
-  // Actualizar bottombar items
-  document.querySelectorAll('.bottombar-item').forEach(item => {
-    if (item.getAttribute('data-page') === pageId) {
-      item.classList.add('active');
-    } else {
-      item.classList.remove('active');
-    }
-  });
+  closeMenus(); closeMore();
+  window.scrollTo(0, 0);
+  if (pageId === 'home' && window.renderHome) window.renderHome();
+};
 
-  // Ocultar todas las páginas y mostrar la activa
-  document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-  const targetPage = document.getElementById('page-' + pageId);
-  if (targetPage) {
-    targetPage.classList.add('active');
+/* ── Datos del perfil y la cuenta en el menú ── */
+window.syncChrome = function () {
+  const name = (typeof ws !== 'undefined' && ws && ws.name) || '';
+  const email = (typeof currentUser !== 'undefined' && currentUser && currentUser.email) || '';
+  const initial = (s, fallback) => (s.trim()[0] || fallback).toUpperCase();
+  ['wsAvatar', 'wsAvatarMobile'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initial(name, 'O'); });
+  const ua = document.getElementById('userAvatar'); if (ua) ua.textContent = initial(email, '?');
+  const main = document.getElementById('wsSelect'), mob = document.getElementById('wsSelectMobile');
+  if (main && mob) { mob.innerHTML = main.innerHTML; mob.value = main.value; }
+};
+const baseRenderWsSelect = renderWsSelect;
+renderWsSelect = function () { baseRenderWsSelect(); syncChrome(); };
 
-    // Si es home, renderizar contenido
-    if (pageId === 'home' && window.renderHome) {
-      window.renderHome();
-    }
+/* ============================================================
+   Inicio
+   Cada herramienta de Otto se registra con OttoHome.register()
+   y aporta dos cosas: sus tareas de "Para hoy" y sus cifras de
+   "Este mes". Inicio solo las junta y las ordena.
+   ============================================================ */
+const OttoHome = (() => {
+  // Herramientas previstas: sirven para explicar qué traerán cuando aún no están activas
+  const PLANNED = [
+    { id: 'watch', tool: 'Otto vigila', text: 'Vigila tu web y tu SEO y te avisa cuando algo falla o cambia.' },
+    { id: 'count', tool: 'Otto cuenta', text: 'Tus visitas y estadísticas en un vistazo.' },
+    { id: 'order', tool: 'Otto ordena', text: 'Sube facturas y tickets y Otto los ordena por ti.' },
+    { id: 'schedule', tool: 'Otto agenda', text: 'Citas y reservas conectadas a tu calendario.' },
+  ];
+  // Los id de las herramientas son: write, watch, count, order, schedule
+  const providers = [];
+  let filter = 'all';
+  let actions = [];
+
+  function register(p) { providers.push(p); }
+
+  const fmt = n => Number(n || 0).toLocaleString('es-ES');
+  const fmtTokens = n => n < 1000 ? fmt(n) : (n / 1000).toLocaleString('es-ES', { maximumFractionDigits: 1 }) + ' K';
+  const inMonth = h => { const d = new Date(h.generatedAt), n = new Date(); return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear(); };
+  function ago(iso) {
+    const d = new Date(iso); if (isNaN(d)) return '';
+    const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (days <= 0) return 'Hoy';
+    if (days === 1) return 'Ayer';
+    if (days < 31) return `Hace ${days} días`;
+    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
-};
 
-// Renderizar página home
-window.renderHome = function() {
-  const greeting = document.getElementById('homeGreeting');
-  const askOtto = document.getElementById('homeAskOtto');
-  const proposals = document.getElementById('homeProposals');
-  const pulse = document.getElementById('homePulse');
+  /* ── Otto escribe ── */
+  register({
+    id: 'write', name: 'Escribe',
+    tasks() {
+      const out = [];
+      const next = TOPICS.find(t => !t.done);
+      if (next) {
+        out.push({ tone: 'accent', title: next.name, meta: `Siguiente tema del calendario · ${next.cat}`, when: next.week, label: 'Escribirlo',
+          run() {
+            showPage('write');
+            if (currentMode !== 'calendar') switchTab('calendar', document.querySelector('.tabs .tab'));
+            selectTopic(next.id);
+            const card = document.getElementById('topic-' + next.id); if (card) card.scrollIntoView({ block: 'center' });
+          } });
+      } else {
+        out.push({ tone: 'muted', title: 'No quedan temas pendientes', meta: 'Añade temas al calendario para seguir publicando', when: '', label: 'Abrir calendario', run() { showPage('calendar'); } });
+      }
+      history.map((h, i) => ({ h, i })).filter(x => x.h.status !== 'published').slice(0, 3).forEach(({ h, i }) => {
+        out.push({ tone: 'muted', title: h.titulo_seo || 'Sin título', meta: 'Borrador sin publicar', when: ago(h.generatedAt), label: 'Abrir',
+          run() { loadFromHistory(i); },
+          menu: [{ label: 'Eliminar borrador', danger: true, async run() { await deleteHistory(i); OttoHome.render(); } }] });
+      });
+      return out;
+    },
+    figures() {
+      const tokens = (typeof usageRows !== 'undefined' ? usageRows : []).reduce((a, r) => a + (r.input_tokens || 0) + (r.output_tokens || 0), 0);
+      return [
+        { label: 'Posts creados', value: fmt(history.filter(inMonth).length) },
+        { label: 'Publicados en WordPress', value: fmt(history.filter(h => h.status === 'published' && inMonth(h)).length) },
+        { label: 'Borradores', value: fmt(history.filter(h => h.status !== 'published').length) },
+        { label: 'Consumo de IA', value: fmtTokens(tokens) + ' tokens' },
+      ];
+    },
+  });
 
-  if (!greeting || !askOtto || !proposals || !pulse) return;
+  /* ── Pintado ── */
+  function render() {
+    const hour = new Date().getHours();
+    $('homeTitle').textContent = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
+    const date = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).replace(',', '');
+    $('homeSub').textContent = [ws && ws.name, date].filter(Boolean).join(' · ');
 
-  // Saludo
-  const hour = new Date().getHours();
-  const timeOfDay = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
-  const name = ws?.name || 'Profesional';
-  greeting.innerHTML = `
-    <h2 class="greeting-title">${timeOfDay}, ${name}</h2>
-    <p class="greeting-summary">Bienvenido a Otto</p>
-  `;
+    actions = [];
+    const reg = fn => { actions.push(fn); return actions.length - 1; };
+    const active = providers.filter(p => !p.enabled || p.enabled());
+    const all = active.flatMap(p => (p.tasks ? p.tasks() : []).map(t => ({ ...t, mod: p.name, modId: p.id })));
+    const mods = [...new Set(all.map(t => t.modId))];
+    if (!mods.includes(filter)) filter = 'all';
+    const shown = filter === 'all' ? all : all.filter(t => t.modId === filter);
 
-  // Barra "Pídele algo a Otto"
-  askOtto.innerHTML = `
-    <div class="ask-otto-bar">
-      <input
-        type="text"
-        class="ask-otto-input"
-        placeholder="Escribe un post sobre..."
-        onkeypress="if(event.key==='Enter') handleAskOtto(this.value)"
-      />
-      <button class="ask-otto-button" onclick="handleAskOtto(document.querySelector('.ask-otto-input').value)">
-        →
-      </button>
-    </div>
-  `;
+    $('homeCount').textContent = shown.length ? `${shown.length} ${shown.length === 1 ? 'cosa' : 'cosas'}` : '';
 
-  // Propuestas
-  const nextTopic = TOPICS.find(t => !t.done);
-  proposals.innerHTML = `
-    <h2 class="section-title">Otto propone hoy</h2>
-    <div class="proposals-grid">
-      <div class="proposal-card">
-        <div class="proposal-icon">📝</div>
-        <div class="proposal-content">
-          <h3 class="proposal-title">Siguiente tema</h3>
-          <p class="proposal-desc">${nextTopic ? nextTopic.name : 'Añade temas en Otto escribe'}</p>
-        </div>
-        ${nextTopic ? '<button class="proposal-button" onclick="showPage(\'write\')">Escribirlo</button>' : ''}
-      </div>
-      <div class="proposal-card">
-        <div class="proposal-icon">📄</div>
-        <div class="proposal-content">
-          <h3 class="proposal-title">Borradores</h3>
-          <p class="proposal-desc">${history.filter(h => h.status === 'draft').length} sin publicar</p>
-        </div>
-      </div>
-      <div class="proposal-card">
-        <div class="proposal-icon">🌸</div>
-        <div class="proposal-content">
-          <h3 class="proposal-title">Tema de temporada</h3>
-          <p class="proposal-desc">Ideas de ${new Date().getMonth() < 3 ? 'invierno' : new Date().getMonth() < 6 ? 'primavera' : new Date().getMonth() < 9 ? 'verano' : 'otoño'}</p>
-        </div>
-        <button class="proposal-button" onclick="showPage('write')">Escribir</button>
-      </div>
-    </div>
-  `;
+    // filtro por herramienta: solo si hay más de una con tareas
+    $('homeFilters').innerHTML = mods.length > 1
+      ? `<div class="chips" role="group" aria-label="Filtrar por herramienta">` +
+        [['all', 'Todo'], ...mods.map(id => [id, active.find(p => p.id === id).name])]
+          .map(([id, label]) => `<button type="button" class="${id === filter ? 'on' : ''}" aria-pressed="${id === filter}" onclick="OttoHome.setFilter('${id}')">${esc(label)}</button>`).join('') + `</div>`
+      : '';
 
-  // Pulso del negocio
-  pulse.innerHTML = `
-    <h2 class="section-title">Pulso del negocio</h2>
-    <div class="pulse-grid">
-      <div class="pulse-card">
-        <div class="pulse-value">${history.length}</div>
-        <div class="pulse-label">Posts creados</div>
-      </div>
-      <div class="pulse-card">
-        <div class="pulse-value">${history.filter(h => h.status === 'draft').length}</div>
-        <div class="pulse-label">Borradores</div>
-      </div>
-      <div class="pulse-card pulse-card-disabled">
-        <div class="pulse-value">—</div>
-        <div class="pulse-label">Visitas</div>
-        <div class="pulse-hint">Conecta Otto vigila</div>
-      </div>
-      <div class="pulse-card pulse-card-disabled">
-        <div class="pulse-value">—</div>
-        <div class="pulse-label">Facturas</div>
-        <div class="pulse-hint">Conecta Otto cuenta</div>
-      </div>
-    </div>
-  `;
-};
+    $('homeTasks').innerHTML = shown.length ? `<ul class="rows">` + shown.map(t => {
+      const run = reg(t.run);
+      const menuId = t.menu ? 'rowMenu' + run : '';
+      const menu = t.menu ? `
+        <div class="row-more">
+          <button type="button" class="icon-btn" aria-label="Más acciones" aria-haspopup="menu" aria-expanded="false" onclick="OttoHome.toggleMenu(event,'${menuId}')"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button>
+          <div class="menu menu-down" id="${menuId}" role="menu">${t.menu.map(m => `<button type="button" class="menu-item${m.danger ? ' danger' : ''}" role="menuitem" onclick="OttoHome.run(${reg(m.run)})">${esc(m.label)}</button>`).join('')}</div>
+        </div>` : '';
+      return `<li class="row">
+        <span class="dot dot-${t.tone}" aria-hidden="true"></span>
+        <div class="row-main"><div class="row-title">${esc(t.title)}</div><div class="row-meta">${esc(t.meta)}</div></div>
+        <div class="row-side"><span class="row-mod">${esc(t.mod)}</span>${t.demo ? '<span class="row-demo">Ejemplo</span>' : ''}${t.when ? `<span class="row-when">${esc(t.when)}</span>` : ''}
+          <button type="button" class="btn btn-secondary" onclick="OttoHome.run(${run})">${esc(t.label)}</button>${menu}</div>
+      </li>`;
+    }).join('') + `</ul>`
+      : `<div class="rows-empty"><p>No hay nada pendiente.</p><button type="button" class="btn btn-secondary" onclick="showPage('write')">Escribir un post</button></div>`;
 
-function handleAskOtto(query) {
-  if (!query || !query.trim()) return;
+    // cifras por herramienta + las herramientas que aún no están activas
+    const activeIds = active.map(p => p.id);
+    $('homeFigures').innerHTML =
+      active.filter(p => p.figures).map(p => `
+        <div class="grp">${esc(p.name)}${p.demo ? ' <span class="row-demo">Ejemplo</span>' : ''}</div>
+        <dl class="figs">${p.figures().map(f => `<div><dt>${esc(f.label)}</dt><dd>${esc(f.value)}${f.delta ? ` <small class="${f.delta.startsWith('-') ? 'down' : 'up'}">${esc(f.delta)}</small>` : ''}</dd></div>`).join('')}</dl>`).join('')
+      + (PLANNED.some(m => !activeIds.includes(m.id)) ? `
+        <div class="grp">Más herramientas</div>
+        <ul class="tools">${PLANNED.filter(m => !activeIds.includes(m.id)).map(m => `<li><b>${esc(m.tool)}</b><span>${esc(m.text)}</span></li>`).join('')}</ul>` : '');
+  }
 
-  const keywords = ['escribe', 'escrib', 'post', 'blog', 'artículo', 'articulo'];
-  const isWrite = keywords.some(kw => query.toLowerCase().startsWith(kw));
+  /* ── Acciones ── */
+  function run(i) { closeRowMenus(); if (actions[i]) actions[i](); }
+  function setFilter(id) { filter = id; render(); }
+  function toggleMenu(ev, id) {
+    ev.stopPropagation();
+    const m = document.getElementById(id), open = !m.classList.contains('open');
+    closeRowMenus();
+    m.classList.toggle('open', open);
+    ev.currentTarget.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  function closeRowMenus() {
+    document.querySelectorAll('.menu-down.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.row-more .icon-btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
+  }
+  document.addEventListener('click', closeRowMenus);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeRowMenus(); });
 
-  if (isWrite) {
+  /* Barra "Pídele algo a Otto": por ahora entiende peticiones de escribir un post */
+  function ask(ev) {
+    ev.preventDefault();
+    const input = $('askInput'), note = $('askNote');
+    const q = input.value.trim();
+    if (!q) return false;
+    const isWrite = /^(escribe|escribir|redacta|redactar|crea|crear|post|blog|art[ií]culo)\b/i.test(q);
+    if (!isWrite) {
+      note.textContent = 'Todavía solo sé escribir posts. Prueba con «escribe un post sobre sesiones de otoño».';
+      note.hidden = false;
+      clearTimeout(ask.t); ask.t = setTimeout(() => { note.hidden = true; }, 7000);
+      return false;
+    }
+    note.hidden = true;
+    const topic = q
+      .replace(/^(escribe|escribir|redacta|redactar|crea|crear)\s+(un|una|el|la)?\s*(post|blog|art[ií]culo|entrada)?\s*(sobre|de|acerca de)?\s*/i, '')
+      .replace(/^(post|blog|art[ií]culo)\s*(sobre|de|acerca de)?\s*/i, '').trim();
     showPage('write');
-  } else {
-    alert('Aún aprendo; por ahora sé escribir posts. Escribe "post sobre..." o "escribe..."');
+    if (topic) {
+      switchTab('free', document.querySelectorAll('.tabs .tab')[1]);
+      $('freeTopic').value = topic;
+      $('freeTopic').focus();
+    }
+    input.value = '';
+    return false;
   }
-}
+
+  return { register, render, run, setFilter, toggleMenu, ask };
+})();
+
+window.renderHome = OttoHome.render;
+
+// Si cambias de perfil estando en Inicio, se actualiza
+const baseSelectWorkspace = selectWorkspace;
+selectWorkspace = async function (id) {
+  await baseSelectWorkspace(id);
+  if (document.getElementById('page-home').classList.contains('active')) OttoHome.render();
+};
 </script>
+<script src="modules-demo.js"></script>
 </body>
 </html>
