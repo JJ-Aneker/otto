@@ -265,8 +265,9 @@
     if (O.period !== 'all' && !quarters.includes(O.period) && !months.includes(O.period)) (isQ(O.period) ? quarters : months).unshift(O.period);
     const dirDocs = allInP.filter(d => dirOf(d) === O.dir);
     const F = figuresFor(dirDocs);
-    const list = dirDocs.filter(d => O.filter === 'all' ? true : O.filter === 'review' ? (needsReview(d) || d.status === 'pending') : d.status === 'done');
-    const cnt = { all: dirDocs.length, review: dirDocs.filter(d => needsReview(d) || d.status === 'pending').length, done: dirDocs.filter(d => d.status === 'done').length };
+    const list = dirDocs.filter(d => O.filter === 'all' ? true : O.filter === 'review' ? (needsReview(d) || d.status === 'pending') : O.filter === 'nofile' ? !d.file_path : O.filter === 'file' ? !!d.file_path : d.status === 'done')
+      .sort((a, b) => dateOf(b).localeCompare(dateOf(a)) || String(b.doc_number || '').localeCompare(String(a.doc_number || '')));
+    const cnt = { all: dirDocs.length, review: dirDocs.filter(d => needsReview(d) || d.status === 'pending').length, done: dirDocs.filter(d => d.status === 'done').length, file: dirDocs.filter(d => d.file_path).length, nofile: dirDocs.filter(d => !d.file_path).length };
     const chip = (k, l) => `<button class="${O.filter === k ? 'on' : ''}" onclick="OttoOrder.filter('${k}')">${l} ${cnt[k]}</button>`;
     const sale = O.dir === 'venta', pk = O.packing;
     const pendTotal = allInP.filter(d => d.status !== 'done').length;
@@ -285,7 +286,7 @@
       </dl>
       ${summaryHtml(allInP)}
       <div class="order-bar">
-        <div class="chips" role="group" aria-label="Filtrar documentos">${chip('all', 'Todos')}${chip('review', 'Por revisar')}${chip('done', 'Revisados')}</div>
+        <div class="chips" role="group" aria-label="Filtrar documentos">${chip('all', 'Todos')}${chip('review', 'Por revisar')}${chip('done', 'Revisados')}${cnt.nofile ? chip('file', 'Con archivo') + chip('nofile', 'Sin archivo') : ''}</div>
         <div class="export-bar">
           <button class="btn btn-secondary" id="xlsBtn" onclick="OttoOrder.exportXlsx()" ${pk || !allInP.length ? 'disabled' : ''}>Descargar Excel</button>
           <button class="btn btn-secondary" id="libroBtn" onclick="OttoOrder.libroClick()" ${pk || !allInP.length ? 'disabled' : ''} title="Añade estos documentos al Excel de ingresos y gastos que te pide la gestoría">Rellenar Excel de la gestoría</button>
@@ -316,7 +317,7 @@
     else if (unread) meta = 'Subido, pero Otto aún no lo ha leído. Ábrelo para leerlo de nuevo.';
     else if (d.status === 'error') meta = d.extract_error || 'No se pudo leer';
     else if (d.status === 'review') meta = flags.map(f => flagTxt(f, d.direction)).filter(Boolean).slice(0, 2).join(' · ') || 'Pendiente de revisar';
-    else meta = [TYPE_TXT[d.doc_type], d.doc_date ? shortDate(d.doc_date) : null, d.concept].filter(Boolean).join(' · ');
+    else meta = [TYPE_TXT[d.doc_type], d.doc_date ? shortDate(d.doc_date) : null, d.concept, d.file_path ? null : 'Del libro, sin archivo'].filter(Boolean).join(' · ');
     const tag = busy ? '' : unread ? '<span class="tag tag-warn">Sin leer</span>' : d.status === 'review' ? '<span class="tag tag-warn">Por revisar</span>' : d.status === 'error' ? '<span class="tag tag-danger">Error</span>' : '';
     const sub = (d.status === 'review' && (d.doc_date || d.concept)) ? [TYPE_TXT[d.doc_type], d.doc_date ? shortDate(d.doc_date) : null, d.concept].filter(Boolean).join(' · ') : '';
     return `<li class="row doc-row" role="button" tabindex="0" onclick="OttoOrder.open('${esc(d.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();OttoOrder.open('${esc(d.id)}')}">
