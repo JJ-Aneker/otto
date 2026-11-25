@@ -727,3 +727,28 @@ body.no-scroll { overflow: hidden; }
 .report li + li { margin-top: 2px; }
 .report.ok { background: var(--success-subtle); color: var(--text); }
 .report.danger { background: var(--danger-subtle); color: var(--danger); }
+
+/* ── Otto ordena · panel anual ── */
+.view-seg { margin-bottom: var(--sp-4); }
+.panel-note { margin: 0; max-width: 62ch; }
+.panel-block { margin-bottom: var(--sp-5); }
+.panel-block h3 { font-size: var(--fs-md); font-weight: 600; margin: 0 0 var(--sp-2); }
+.tbl-wrap { overflow-x: auto; background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--r-lg); padding: 0 var(--sp-4); }
+.panel-table { min-width: 560px; }
+.panel-table th, .panel-table td { padding: 8px 0 8px var(--sp-3); }
+.panel-table tbody th { padding-left: 0; }
+.panel-table tr.grp th, .panel-table tr.grp td { font-weight: 600; background: var(--surface-hover); }
+.panel-table tr.grp th { padding-left: var(--sp-2); }
+.panel-table tr.sub th { padding-left: var(--sp-4); font-weight: 400; color: var(--text-muted); }
+.panel-table tr.tot th, .panel-table tr.tot td { font-weight: 700; border-top: var(--bw) solid var(--border-strong); }
+.panel-table .nil { color: var(--text-muted); }
+.qchart { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); height: 160px; align-items: end; background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-4) var(--sp-2); }
+.qcol { display: flex; flex-direction: column; height: 100%; }
+.qbars { flex: 1; display: flex; align-items: flex-end; justify-content: center; gap: 6px; }
+.qbar { width: 28px; max-width: 40%; min-height: 2px; border-radius: 3px 3px 0 0; }
+.qlab { text-align: center; font-size: var(--fs-sm); color: var(--text-muted); padding-top: 4px; }
+.qin { background: var(--accent); }
+.qout { background: color-mix(in srgb, var(--warning) 75%, var(--surface)); }
+.qkey { display: flex; gap: var(--sp-2); align-items: center; font-size: var(--fs-sm); color: var(--text-muted); margin: var(--sp-2) 0 0; }
+.qkey span { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-left: var(--sp-2); }
+.qkey span:first-child { margin-left: 0; }

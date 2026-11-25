@@ -28,6 +28,27 @@
     'cuotas de autonomo': 'Cuota autónomo', 'cuota autonomo': 'Cuota autónomo',
     'software': 'Software', 'informatica': 'Informática', 'comisiones': 'Comisiones', 'asociaciones': 'Asociaciones', 'comunidad': 'Comunidad', 'otros': 'Otros',
   };
+  const TYPES = ['Impresión fotográfica', 'Material para sesiones', 'Comisiones', 'Equipo de trabajo', 'Informática', 'Formación', 'Software', 'Web', 'Publicidad y Marketing', 'Gestoría', 'Asociaciones', 'Suministros', 'Comunidad', 'Otros', 'Cuota autónomo', 'Restaurantes y hoteles', 'Gastos exentos de IVA'];
+  const GROUPS = [
+    ['Costes directos', ['Impresión fotográfica', 'Material para sesiones', 'Comisiones']],
+    ['Inversión y equipo', ['Equipo de trabajo', 'Informática', 'Formación']],
+    ['Herramientas', ['Software', 'Web']],
+    ['Marketing', ['Publicidad y Marketing']],
+    ['Estructura', ['Gestoría', 'Asociaciones', 'Suministros', 'Comunidad', 'Otros']],
+    ['Autónomo', ['Cuota autónomo']],
+    ['Mixtos', ['Restaurantes y hoteles']],
+    ['Sin IVA', ['Gastos exentos de IVA']],
+  ];
+  // Tipo de gasto del libro que corresponde a un documento (o null si no encaja)
+  function pickTypeIn(d, list) {
+    const byNorm = new Map((list && list.length ? list : TYPES).map(t => [norm(t), t]));
+    for (const raw of [d.expense_type, d.concept]) {
+      const n = norm(raw); if (!n) continue;
+      if (byNorm.has(n)) return byNorm.get(n);
+      const a = ALIAS[n]; if (a && byNorm.has(norm(a))) return byNorm.get(norm(a));
+    }
+    return null;
+  }
   const SALE_PRODUCT = /album|marco|cuadro|lienzo|impresi|copias|ampliaci|libro|producto|tarjeta regalo/;
 
   function xmlToDoc(txt) {
@@ -150,15 +171,8 @@
       const rs = new Sheet('Resumen', sheetPath['Resumen'], await read(sheetPath['Resumen']), sst);
       for (let r = 15; r <= 31; r++) { const v = String(rs.value('C' + r) || '').trim(); if (v) types.push(v); }
     }
-    const typeByNorm = new Map(types.map(t => [norm(t), t]));
-    const pickType = d => {
-      for (const raw of [d.expense_type, d.concept]) {
-        const n = norm(raw); if (!n) continue;
-        if (typeByNorm.has(n)) return typeByNorm.get(n);
-        const a = ALIAS[n]; if (a && typeByNorm.has(norm(a))) return typeByNorm.get(norm(a));
-      }
-      return null;
-    };
+    const typeByNorm = new Map((types.length ? types : TYPES).map(t => [norm(t), t]));
+    const pickType = d => pickTypeIn(d, types);
 
     const rep = { added: {}, dup: 0, otherYear: 0, noDate: 0, toOtros: [], noRate: 0, started: {}, lines: [], full: [] };
     const sorted = [...docs].sort((a, b) => String(a.doc_date).localeCompare(String(b.doc_date)) || String(a.doc_number).localeCompare(String(b.doc_number)));
@@ -170,30 +184,38 @@
       plan[d.direction === 'venta' ? 'ing' : 'gas'][q].push(d);
     }
 
+    const cmp = v => norm(v).replace(/ /g, '');
+    const keyOf = (date, num_, who, base) => [String(date), cmp(num_), cmp(who), base === null || base === '' ? '' : Math.round(Number(base) * 100)].join('|');
+    const colsOf = dir => dir === 'ing' ? ['K', 'L', 'M', 'N', 'O', 'P', 'Q'] : ['K', 'L', 'M', 'N', 'O', 'P'];
+    const totalsOf = dir => dir === 'ing' ? ['Q5', 'S5', 'V5'] : ['P4', 'S4', 'W4'];
+    // Lo que ya hay en las 4 pestañas de cada tipo (una factura mal archivada en otro trimestre también cuenta)
+    const existing = { ing: new Set(), gas: new Set() }, shape = {};
+    for (const dir of ['ing', 'gas']) for (let q = 1; q <= 4; q++) {
+      const sh = await getSheet((dir === 'ing' ? 'Ingresos ' : 'Gastos ') + q + 'T');
+      const first = sh.firstRow(totalsOf(dir)); let last = first - 1;
+      for (let r = first; r <= sh.maxRow(); r++) {
+        if (!colsOf(dir).some(c => sh.hasValue(c + r))) continue;
+        last = r;
+        const kv = sh.value('K' + r); let iso = '';
+        if (typeof kv === 'number') iso = new Date(Date.UTC(1899, 11, 30) + kv * 86400000).toISOString().slice(0, 10);
+        else { const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(kv).trim()); if (m) iso = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; }
+        existing[dir].add(keyOf(iso, sh.value('L' + r), sh.value('M' + r) || sh.value('N' + r), sh.value((dir === 'ing' ? 'Q' : 'P') + r)));
+      }
+      shape[sh.name] = { first, last };
+    }
+
     for (const dir of ['ing', 'gas']) for (let q = 1; q <= 4; q++) {
       const list = plan[dir][q]; if (!list.length) continue;
       const name = (dir === 'ing' ? 'Ingresos ' : 'Gastos ') + q + 'T';
       const sh = await getSheet(name);
-      const totals = dir === 'ing' ? ['Q5', 'S5', 'V5'] : ['P4', 'S4', 'W4'];
-      const first = sh.firstRow(totals);
-      const inputCols = dir === 'ing' ? ['K', 'L', 'M', 'N', 'O', 'P', 'Q'] : ['K', 'L', 'M', 'N', 'O', 'P'];
-      const keyOf = (date, num_, who, base) => [String(date), norm(num_), norm(who), base === null || base === '' ? '' : Math.round(Number(base) * 100)].join('|');
-      // Lo que ya hay en la hoja
-      const existing = new Set(); let last = first - 1;
-      for (let r = first; r <= sh.maxRow(); r++) {
-        if (!inputCols.some(c => sh.hasValue(c + r))) continue;
-        last = r;
-        const kv = sh.value('K' + r); let iso = '';
-        if (typeof kv === 'number') { const dt = new Date(Date.UTC(1899, 11, 30) + kv * 86400000); iso = dt.toISOString().slice(0, 10); }
-        else { const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(kv).trim()); if (m) iso = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; }
-        const baseCol = dir === 'ing' ? 'Q' : 'P';
-        existing.add(keyOf(iso, sh.value('L' + r), sh.value('M' + r) || sh.value('N' + r), sh.value(baseCol + r)));
-      }
+      const { first, last } = shape[name];
       let row = Math.max(first, last + 1), n = 0;
       for (const d of list) {
         const base = baseOf(d), rate = rateOf(d);
         const who = d.supplier_tax_id || d.supplier;
-        if (existing.has(keyOf(d.doc_date, d.doc_number, who, base))) { rep.dup++; continue; }
+        const key = keyOf(d.doc_date, d.doc_number, who, base);
+        if (existing[dir].has(key)) { rep.dup++; continue; }
+        existing[dir].add(key);
         const r = row++;
         sh.number('K' + r, serial(d.doc_date));
         sh.text('L' + r, d.doc_number); sh.text('M' + r, d.supplier_tax_id); sh.text('N' + r, d.supplier);
@@ -202,7 +224,7 @@
         const hv = h === 'E' ? 'E.L.' : h;
         const helpers = () => { sh.formula('G' + r, `+H${r}&"/"&I${r}`, `${hv}/${month}`, true); sh.formula('H' + r, `+IF(MID(L${r},1,1)="E","E.L.",MID(L${r},1,1))`, hv, true); sh.formula('I' + r, `+MONTH(K${r})`, month); };
         if (dir === 'ing') {
-          sh.text('O' + r, SALE_PRODUCT.test(norm(d.description)) ? 'Venta de productos' : 'Prestación de servicios');
+          sh.text('O' + r, norm(d.concept) === 'venta de productos' ? 'Venta de productos' : norm(d.concept) === 'prestacion de servicios' ? 'Prestación de servicios' : SALE_PRODUCT.test(norm(d.description)) ? 'Venta de productos' : 'Prestación de servicios');
           sh.text('P' + r, d.description);
           sh.number('Q' + r, base);
           if (rate !== null) sh.number('R' + r, rate); else rep.noRate++;
@@ -238,5 +260,5 @@
     return { blob, report: rep };
   }
 
-  window.OttoLibro = { fill };
+  window.OttoLibro = { fill, pickTypeIn, TYPES, GROUPS, ALIAS, norm };
 })();

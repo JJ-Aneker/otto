@@ -5,7 +5,7 @@
    La lectura con IA la hace el servidor (api/ordena).
    ============================================================ */
 (function () {
-  const O = { docs: [], cats: [], loaded: false, filter: 'all', period: null, dir: 'compra', packing: null, report: null, busy: new Set(), queue: { total: 0, done: 0 }, openId: null, catsError: false, editCat: null };
+  const O = { docs: [], cats: [], loaded: false, filter: 'all', period: null, dir: 'compra', packing: null, report: null, view: 'docs', year: null, busy: new Set(), queue: { total: 0, done: 0 }, openId: null, catsError: false, editCat: null };
 
   const MAX_MB = 10;
   const EXT_MIME = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
@@ -18,26 +18,26 @@
 
   // Maestro de categorías de partida (editable en Configuración → Ordena)
   const DEFAULT_CATS = [
-    ['Gestoría', 'colaboradores', 'Mis gestoría Online'],
-    ['Mantenimiento web', 'colaboradores', 'DCMWEB, seosem'],
-    ['Mentorías', 'colaboradores', ''],
+    ['Gestoría', 'Gestoría', 'Mis gestoría Online'],
+    ['Mantenimiento web', 'Web', 'DCMWEB, seosem'],
+    ['Mentorías', 'Formación', ''],
     ['Formación', 'Formación', ''],
     ['Laboratorios fotográficos', 'Impresión fotográfica', 'Larios Crea Digital, Kitoli'],
     ['Material para sesiones', 'Material para sesiones', 'Zara, shein, temu, tejidos, props, globos, Leroy'],
-    ['Material de trabajo', 'equipo de trabajo', 'cámara, lentes, luces, pc, ordenador, pies de focos'],
-    ['Web', 'web', 'Ionos'],
-    ['Publicidad y MK', 'Trustlocal', 'meta, google, papelería, bolsas, tarjetas'],
-    ['Teléfono', 'Suministro', 'Digi'],
-    ['Gasolina', 'Suministro', ''],
-    ['Restaurante y hoteles', 'Restaurante y hoteles', ''],
-    ['Cuotas de autónomo', 'Cuotas de autónomo', ''],
-    ['Software', 'Informatica', 'programas software, adminphoto, evoto'],
+    ['Material de trabajo', 'Equipo de trabajo', 'cámara, lentes, luces, pc, ordenador, pies de focos'],
+    ['Web', 'Web', 'Ionos'],
+    ['Publicidad y MK', 'Publicidad y Marketing', 'meta, google, papelería, bolsas, tarjetas'],
+    ['Teléfono', 'Suministros', 'Digi'],
+    ['Gasolina', 'Suministros', ''],
+    ['Restaurante y hoteles', 'Restaurantes y hoteles', ''],
+    ['Cuotas de autónomo', 'Cuota autónomo', ''],
+    ['Software', 'Software', 'programas software, adminphoto, evoto'],
     ['Comisiones', 'Comisiones', 'Adminphoto, bancos'],
-    ['Asociaciones', 'Fotografía', ''],
+    ['Asociaciones', 'Asociaciones', ''],
   ];
 
   /* ── Utilidades ── */
-  const eur = n => n === null || n === undefined || n === '' ? '—' : Number(n).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+  const eur = n => n === null || n === undefined || n === '' ? '—' : Number(n).toLocaleString('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' });
   const fmtIn = n => n === null || n === undefined ? '' : Number(n).toFixed(2).replace('.', ',');
   const parseIn = v => {
     let s = String(v ?? '').replace(/[^\d.,-]/g, ''); if (!s) return null;
@@ -83,7 +83,7 @@
   async function load() {
     if (typeof ws === 'undefined' || !ws || !sb) return;
     const [d, c] = await Promise.all([
-      sb.from('order_docs').select('*').eq('workspace_id', ws.id).order('created_at', { ascending: false }).limit(500),
+      sb.from('order_docs').select('*').eq('workspace_id', ws.id).order('created_at', { ascending: false }).limit(1000),
       sb.from('order_categories').select('*').eq('workspace_id', ws.id).order('position'),
     ]);
     O.catsError = !!((d && d.error) || (c && c.error));
@@ -241,7 +241,7 @@
       <ul>${r.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>`;
   }
 
-  function renderPage() {
+  function renderDocs() {
     renderHead();
     const el = document.getElementById('mod-order'); if (!el) return;
     if (!O.loaded) { el.innerHTML = '<p class="muted-note">Cargando…</p>'; return; }
@@ -288,13 +288,23 @@
         <div class="chips" role="group" aria-label="Filtrar documentos">${chip('all', 'Todos')}${chip('review', 'Por revisar')}${chip('done', 'Revisados')}</div>
         <div class="export-bar">
           <button class="btn btn-secondary" id="xlsBtn" onclick="OttoOrder.exportXlsx()" ${pk || !allInP.length ? 'disabled' : ''}>Descargar Excel</button>
-          <button class="btn btn-secondary" id="libroBtn" onclick="document.getElementById('libroFile').click()" ${pk || !allInP.length ? 'disabled' : ''} title="Añade estos documentos al Excel de ingresos y gastos que te pide la gestoría">Rellenar Excel de la gestoría</button>
+          <button class="btn btn-secondary" id="libroBtn" onclick="OttoOrder.libroClick()" ${pk || !allInP.length ? 'disabled' : ''} title="Añade estos documentos al Excel de ingresos y gastos que te pide la gestoría">Rellenar Excel de la gestoría</button>
           <input type="file" id="libroFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onchange="OttoOrder.fillLibro(this)">
           <button class="btn btn-primary" id="packBtn" onclick="OttoOrder.exportPack()" ${pk || !allInP.length ? 'disabled' : ''} title="${pendTotal ? pendTotal + ' por revisar en este periodo' : 'Excel y PDFs renombrados en un ZIP'}">${pk ? (pk.total ? `Preparando ${Math.min(pk.done + 1, pk.total)} de ${pk.total}…` : 'Preparando…') : 'Paquete para la gestoría'}</button>
         </div>
       </div>
       ${reportHtml()}
       ${list.length ? `<ul class="rows doc-list">${list.map(row).join('')}</ul>` : `<div class="rows-empty"><p>${dirDocs.length ? 'No hay documentos con este filtro.' : (sale ? 'No hay facturas emitidas en este periodo.' : 'No hay compras en este periodo.')}</p></div>`}`;
+  }
+
+  function renderPage() {
+    const el = document.getElementById('mod-order'); if (!el) return;
+    if (O.view === 'panel' && O.loaded && !O.catsError) {
+      renderHead();
+      el.innerHTML = window.OttoPanel ? OttoPanel.html() : '';
+    } else renderDocs();
+    if (!O.loaded || O.catsError) return;
+    el.insertAdjacentHTML('afterbegin', `<div class="chips seg view-seg" role="group" aria-label="Vista"><button class="${O.view === 'docs' ? 'on' : ''}" onclick="OttoOrder.view('docs')">Documentos</button><button class="${O.view === 'panel' ? 'on' : ''}" onclick="OttoOrder.view('panel')">Panel anual</button></div>`);
   }
 
   function row(d) {
@@ -324,6 +334,7 @@
     host.innerHTML = panelHtml(d);
     host.querySelector('.doc-panel').focus();
     let url = '';
+    if (!d.file_path) { const pv0 = host.querySelector('.doc-preview'); if (pv0) pv0.innerHTML = '<p class="muted-note">Este documento se importó del libro de la gestoría y no tiene archivo adjunto.</p>'; return; }
     try { const r = await sb.storage.from('ordena').createSignedUrl(d.file_path, 3600); url = (r && r.data && r.data.signedUrl) || ''; } catch { /* sin vista previa */ }
     if (O.openId !== id) return;
     const pv = host.querySelector('.doc-preview'); if (!pv) return;
@@ -355,7 +366,7 @@
         <button class="icon-btn" aria-label="Cerrar" onclick="OttoOrder.close()"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></header>
       <div class="doc-grid">
         <div class="doc-side"><div class="doc-preview"><p class="muted-note">Cargando vista previa…</p></div>
-          <p class="doc-file muted-note">${esc(d.file_name)} · <a data-dl hidden target="_blank" rel="noopener">Abrir en otra pestaña</a></p></div>
+          <p class="doc-file muted-note">${esc(d.file_name)}${d.file_path ? ' · ' : ''}<a data-dl hidden target="_blank" rel="noopener">Abrir en otra pestaña</a></p></div>
         <form class="doc-form" onsubmit="event.preventDefault();OttoOrder.save('${esc(d.id)}')">
           ${d.status === 'error' ? `<div class="callout">${esc(d.extract_error || 'No se pudo leer este documento.')} Puedes volver a intentarlo o rellenar los datos a mano.</div>` : ''}
           ${flags.length && d.status !== 'error' ? `<div class="callout">${flags.map(f => esc(flagTxt(f, d.direction))).join(' · ')}${dup ? ` · Se parece a «${esc(dup.supplier || dup.file_name)}»${dup.doc_date ? ' del ' + esc(shortDate(dup.doc_date)) : ''}.` : ''}</div>` : ''}
@@ -383,7 +394,7 @@
           ${lines.length ? `<details class="doc-lines"><summary>Líneas del documento (${lines.length})</summary><ul>${lines.map(l => `<li><span>${esc(l.descripcion || '—')}</span><span>${l.cantidad != null ? esc(String(l.cantidad).replace('.', ',')) + ' ×' : ''}</span><span>${l.importe != null ? eur(l.importe) : ''}</span></li>`).join('')}</ul></details>` : ''}
           <div class="doc-actions">
             <button type="submit" class="btn btn-primary" id="docSave">${d.status === 'done' ? 'Guardar cambios' : 'Guardar y dar por revisado'}</button>
-            <button type="button" class="btn btn-secondary" onclick="OttoOrder.reread('${esc(d.id)}')">Volver a leer con IA</button>
+            ${d.file_path ? `<button type="button" class="btn btn-secondary" onclick="OttoOrder.reread('${esc(d.id)}')">Volver a leer con IA</button>` : ''}
             <button type="button" class="btn btn-ghost btn-danger-text" onclick="OttoOrder.remove('${esc(d.id)}')">Eliminar</button>
           </div>
         </form>
@@ -432,7 +443,7 @@
     if (!confirm(`¿Eliminar «${d.supplier || d.file_name}»? También se borra el archivo.`)) return;
     const r = await sb.from('order_docs').delete().eq('id', id);
     if (r && r.error) { showToast('Error: ' + r.error.message, 'error'); return; }
-    try { await sb.storage.from('ordena').remove([d.file_path]); } catch { /* el archivo queda huérfano; no es grave */ }
+    try { if (d.file_path) await sb.storage.from('ordena').remove([d.file_path]); } catch { /* el archivo queda huérfano; no es grave */ }
     O.docs = O.docs.filter(x => x.id !== id); close(); renderAll(); showToast('Documento eliminado', 'success');
   }
 
@@ -571,7 +582,7 @@
     try {
       let XLSX = null; try { XLSX = await loadLib('xlsx', 'XLSX'); } catch (e) { XLSX = null; }
       const files = new Map(), used = new Set();
-      docs.forEach(d => files.set(d.id, (isSale(d) ? 'ventas/' : 'compras/') + packName(d, used)));
+      docs.forEach(d => files.set(d.id, d.file_path ? (isSale(d) ? 'ventas/' : 'compras/') + packName(d, used) : ''));
       if (!withFiles) {
         docs.forEach(d => files.set(d.id, d.file_name || ''));
         if (XLSX) { const wb = buildWorkbook(XLSX, docs, files); const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellDates: true }); saveBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileStem() + '.xlsx'); }
@@ -582,6 +593,7 @@
       const zip = new JSZip(), failed = [];
       O.packing.total = docs.length; renderPage();
       for (const d of docs) {
+        if (!d.file_path) { files.set(d.id, 'Sin archivo (importado del libro)'); O.packing.done++; continue; }
         try {
           const r = await sb.storage.from('ordena').download(d.file_path);
           if (r.error || !r.data) throw new Error('x');
@@ -601,8 +613,8 @@
 
   /* ── Rellenar el libro de la gestoría ── */
   async function fillLibro(input) {
-    const file = input.files[0]; input.value = '';
-    if (!file || O.packing) return;
+    const file = input ? input.files[0] : null; if (input) input.value = '';
+    if ((input && !file) || O.packing) return;
     const docs = O.docs.filter(d => inPeriod(d) && d.status === 'done');
     const skipped = O.docs.filter(d => inPeriod(d) && d.status !== 'done').length;
     if (!docs.length) { O.report = { tone: 'warn', title: 'No hay documentos revisados en este periodo', lines: ['Revisa los documentos y vuelve a intentarlo. Solo se añaden los que están revisados.'] }; renderPage(); return; }
@@ -610,8 +622,11 @@
     O.report = null; O.packing = { done: 0, total: 0 }; renderPage();
     try {
       const JSZip = await loadLib('jszip', 'JSZip');
+      let buf, fname;
+      if (file) { buf = await file.arrayBuffer(); fname = file.name; }
+      else { const b = await OttoPanel.downloadBook(); buf = await b.blob.arrayBuffer(); fname = b.name; }
       if (!window.OttoLibro) throw new Error('No se pudo cargar el módulo del libro.');
-      const { blob, report: R } = await OttoLibro.fill(await file.arrayBuffer(), docs, JSZip);
+      const { blob, report: R } = await OttoLibro.fill(buf, docs, JSZip);
       const lines = [];
       Object.entries(R.added).filter(([, n]) => n).forEach(([k, n]) => lines.push(`${k}: ${n} ${n === 1 ? 'fila añadida' : 'filas añadidas'}`));
       if (R.dup) lines.push(`${R.dup} ${R.dup === 1 ? 'ya estaba' : 'ya estaban'} en el libro y no se ${R.dup === 1 ? 'ha repetido' : 'han repetido'}.`);
@@ -622,7 +637,10 @@
       R.lines.forEach(l => lines.push(l));
       if (R.total) lines.push('Los totales se recalculan al abrir el Excel. Compruébalo antes de enviarlo.');
       O.report = { tone: R.total ? 'ok' : 'warn', title: R.total ? `Libro rellenado: ${R.total} ${R.total === 1 ? 'fila' : 'filas'}` : 'No se ha añadido ninguna fila', lines };
-      if (R.total) saveBlob(blob, file.name.replace(/\.xlsx$/i, '') + ' (Otto).xlsx');
+      if (R.total) {
+        saveBlob(blob, fname.replace(/\.xlsx$/i, '').replace(/ \(Otto\)$/, '') + ' (Otto).xlsx');
+        try { await OttoPanel.saveBook(blob, fname.replace(/\.xlsx$/i, '').replace(/ \(Otto\)$/, '') + '.xlsx'); lines.push('Libro guardado en Otto: la próxima vez se rellenará este.'); } catch (e) { lines.push('No se pudo guardar el libro en Otto: ' + e.message); }
+      }
     } catch (e) {
       O.report = { tone: 'danger', title: 'No se pudo rellenar el libro', lines: [e.message || 'Error desconocido'] };
     } finally { O.packing = null; renderPage(); }
@@ -674,7 +692,8 @@
     dir(x) { O.dir = x; O.filter = 'all'; renderPage(); },
     exportXlsx() { return exportData(false); },
     exportPack() { return exportData(true); },
-    fillLibro, closeReport() { O.report = null; renderPage(); },
+    view(v) { O.view = v; renderPage(); }, year(y) { O.year = Number(y); renderPage(); },
+    fillLibro, libroClick() { return window.OttoPanel && OttoPanel.hasBook() ? fillLibro(null) : document.getElementById('libroFile').click(); }, closeReport() { O.report = null; renderPage(); },
     reset() { O.docs = []; O.cats = []; O.loaded = false; O.period = null; O.dir = 'compra'; O.report = null; O.filter = 'all'; O.openId = null; O.editCat = null; close(); renderAll(); },
   };
 
@@ -690,6 +709,7 @@
   selectWorkspace = async function (id) { OttoOrder.reset(); await baseSelect(id); await load(); };
   const baseShow = showPage;
   showPage = function (id) { baseShow.apply(this, arguments); if (id === 'order') renderPage(); if (id === 'settings') renderSettings(); };
+  window.OttoOrderCore = { O, renderAll, renderPage, load, loadLib, saveBlob, quarterOf, dateOf, baseOf, vatOf, isSale, tot, eur, flagsOf, stripTxt, catOf, curQuarter };
   renderHead();
   if (typeof ws !== 'undefined' && ws) load();
 })();

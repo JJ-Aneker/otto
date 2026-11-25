@@ -615,6 +615,25 @@ try {
     <!-- ORDENA SECTION -->
     <div id="settings-ordena" style="display:none">
       <div class="card">
+        <div class="card-header"><h2>Libro de la gestoría</h2><p>Guarda aquí el Excel de ingresos y gastos que te pide tu gestoría. Otto lo rellena con tus documentos y guarda siempre la última versión.</p></div>
+        <div class="card-body">
+          <div id="orderBookBox"></div>
+          <input type="file" id="bookFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onchange="OttoPanel.pickBook(this)">
+          <input type="file" id="bookImportFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onchange="OttoPanel.pickImport(this)">
+          <div class="wp-status" id="bookStatus"></div>
+          <hr class="wp-divider"/>
+          <h3 class="sub-h">Cargar los datos que ya tiene el libro</h3>
+          <p class="muted-note">Lee las pestañas de ingresos y gastos y las añade a Otto ordena como documentos revisados, sin archivo adjunto. Sirve para tener el año completo en el panel. Lo que ya está en Otto no se repite.</p>
+          <div class="form-actions"><button class="btn btn-secondary" id="bookImportBtn" onclick="OttoPanel.importBook()">Importar datos del libro</button></div>
+          <div class="wp-status" id="importStatus"></div>
+          <hr class="wp-divider"/>
+          <h3 class="sub-h">Tipos de gasto del libro</h3>
+          <p class="muted-note">Cambia el tipo de gasto de tus categorías (Suministro, Trustlocal, colaboradores…) por los que usa el libro (Suministros, Publicidad y Marketing, Gestoría…), también en los documentos ya guardados. Así el panel y el libro hablan igual.</p>
+          <div class="form-actions"><button class="btn btn-secondary" onclick="OttoPanel.alignTypes()">Ajustar a los tipos del libro</button></div>
+          <div class="wp-status" id="alignStatus"></div>
+        </div>
+      </div>
+      <div class="card">
         <div class="card-header"><h2>Categorías de gasto</h2><p>Otto usa esta lista para clasificar cada factura o ticket. El concepto es lo concreto (Gasolina, Teléfono…) y el tipo de gasto es lo que verá tu gestoría.</p></div>
         <div class="card-body">
           <div id="orderCatsList"></div>
@@ -2537,6 +2556,7 @@ selectWorkspace = async function (id) {
 <script src="watch.js"></script>
 <script src="ordena.js"></script>
 <script src="ordena-libro.js"></script>
+<script src="ordena-panel.js"></script>
 <script src="modules-demo.js"></script>
 </body>
 </html>
