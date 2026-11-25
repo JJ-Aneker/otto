@@ -1,7 +1,7 @@
 // Revisión diaria de todas las webs (la lanza Vercel Cron, ver vercel.json).
 // Necesita la variable CRON_SECRET en Vercel; Vercel la envía sola en la cabecera Authorization.
 const { route, admin, HttpError } = require('../lib/http');
-const { checkSite } = require('../lib/watch');
+const { runSite } = require('../lib/watch');
 
 module.exports = route(['GET', 'POST'], async (req) => {
   const secret = process.env.CRON_SECRET;
@@ -17,8 +17,7 @@ module.exports = route(['GET', 'POST'], async (req) => {
     while (queue.length && Date.now() < deadline) {
       const s = queue.shift();
       try {
-        const r = await checkSite(s.url);
-        await db.from('watch_checks').insert({ site_id: s.id, workspace_id: s.workspace_id, ...r });
+        await runSite(db, s);
         done++;
       } catch { /* una web que falla no frena las demás */ }
     }

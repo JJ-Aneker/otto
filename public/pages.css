@@ -555,8 +555,89 @@ a.btn{text-decoration:none}
 .row-top { align-items: flex-start; }
 .row-top .dot { margin-top: 7px; }
 .row-wrap { white-space: normal; }
-.issue-items { list-style: none; margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--text-muted); }
-.issue-items li { padding: 2px 0; font-family: var(--font-mono); font-size: var(--fs-xs); overflow-wrap: anywhere; }
 .watch-suggest { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-3); padding: var(--sp-3); background: var(--accent-subtle); border-radius: var(--r-md); font-size: var(--fs-sm); }
 #page-watch .grp { margin-top: var(--sp-5); }
 #page-watch .page-actions { gap: var(--sp-2); }
+
+/* Otto vigila · avisos con acciones */
+.watch-sites { margin-bottom: var(--sp-3); }
+.site-line { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-4); font-size: var(--fs-md); }
+.site-line a { font-weight: var(--fw-medium); color: var(--text); text-decoration: none; }
+.site-line a:hover { color: var(--accent-text); text-decoration: underline; }
+.fig-link { cursor: pointer; transition: background var(--dur-fast) var(--ease-out); }
+.fig-link:focus-visible { outline: 2px solid var(--accent-text); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .fig-link:hover { background: var(--surface-hover); } }
+.issues { overflow: hidden; }
+.issue { border-bottom: var(--bw) solid var(--border); }
+.issue:last-child { border-bottom: 0; }
+.issue-head { display: flex; align-items: flex-start; gap: var(--sp-3); width: 100%; padding: var(--sp-3) var(--sp-4); background: transparent; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.issue-head .dot { margin-top: 7px; }
+.issue-head:focus-visible { outline: 2px solid var(--accent-text); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .issue-head:hover { background: var(--surface-hover); } }
+.issue-main { flex: 1; min-width: 0; display: block; }
+.issue-main .row-title, .issue-main .row-meta { display: block; }
+.issue-main .row-meta { white-space: normal; }
+.issue-side { display: flex; align-items: center; gap: var(--sp-2); flex-shrink: 0; margin-top: 2px; color: var(--text-muted); }
+.chev { transition: transform var(--dur-fast) var(--ease-out); }
+.issue-head[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.tag { display: inline-block; padding: 1px var(--sp-2); border-radius: var(--r-sm); font-size: var(--fs-xs); font-weight: var(--fw-medium); }
+.tag-danger { background: var(--danger-subtle); color: var(--danger); }
+.tag-warn { background: var(--warning-subtle); color: var(--warning); }
+.issue-body { padding: 0 var(--sp-4) var(--sp-4) calc(var(--sp-4) + 8px + var(--sp-3)); }
+.issue-items { list-style: none; margin: 0 0 var(--sp-3); border: var(--bw) solid var(--border); border-radius: var(--r-md); background: var(--bg-subtle); }
+.issue-items li { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); border-bottom: var(--bw) solid var(--border); font-size: var(--fs-sm); }
+.issue-items li:last-child { border-bottom: 0; }
+.issue-item-label { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text); overflow-wrap: anywhere; min-width: 0; }
+.issue-item-links { display: flex; gap: var(--sp-3); flex-shrink: 0; }
+.issue-item-links a { color: var(--accent-text); font-size: var(--fs-sm); font-weight: var(--fw-medium); text-decoration: none; }
+.issue-item-links a:hover { text-decoration: underline; }
+.issue-how { margin-bottom: var(--sp-3); font-size: var(--fs-sm); color: var(--text-muted); }
+.issue-how-title { margin-bottom: var(--sp-1); font-weight: var(--fw-semibold); color: var(--text); }
+.issue-how ol { margin-left: var(--sp-5); }
+.issue-how li { padding: 1px 0; }
+.issue-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.issue-body .muted-note { margin-bottom: var(--sp-3); }
+
+/* Otto vigila · últimos 30 días */
+.perf { padding: var(--sp-4); background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--r-lg); }
+.day-strip { display: flex; gap: 3px; }
+.day { flex: 1; height: 28px; border-radius: 3px; background: var(--surface-active); }
+.day-ok { background: var(--success); }
+.day-warn { background: color-mix(in srgb, var(--warning) 70%, var(--surface)); }
+.day-down { background: var(--danger); }
+.day-none { background: var(--surface-active); }
+.day-legend { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--text-muted); }
+.legend-keys { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; justify-content: center; }
+.legend-keys .day { flex: none; width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-left: var(--sp-2); }
+.legend-keys .day:first-child { margin-left: 0; }
+.perf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); margin: var(--sp-4) 0; padding: var(--sp-3) 0; border-top: var(--bw) solid var(--border); border-bottom: var(--bw) solid var(--border); }
+.perf-stats dt { font-size: var(--fs-sm); color: var(--text-muted); }
+.perf-stats dd { font-size: var(--fs-lg); font-weight: var(--fw-semibold); font-variant-numeric: tabular-nums; }
+.perf-chart { display: block; width: 100%; height: auto; max-width: 100%; }
+.perf-grid { stroke: var(--border); stroke-width: 1; }
+.perf-limit { stroke: var(--warning); stroke-width: 1; stroke-dasharray: 4 4; }
+.perf-axis { fill: var(--text-muted); font-size: 11px; font-family: var(--font-sans); }
+.perf-line { fill: none; stroke: var(--accent-text); stroke-width: 2; stroke-linejoin: round; }
+.perf-area { fill: var(--accent-subtle); stroke: none; opacity: 0.7; }
+.perf-dot { fill: var(--surface); stroke: var(--accent-text); stroke-width: 2; }
+.perf-note { margin-top: var(--sp-2); }
+.perf-empty { padding: var(--sp-4) 0 0; }
+.perf-row { border-bottom: var(--bw) solid var(--border); }
+.perf-row:last-child { border-bottom: 0; }
+.perf-row-btn { display: flex; align-items: center; gap: var(--sp-4); width: 100%; padding: var(--sp-3) var(--sp-4); background: transparent; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.perf-row-btn:focus-visible { outline: 2px solid var(--accent-text); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .perf-row-btn:hover { background: var(--surface-hover); } }
+.perf-row-name { flex: 0 0 140px; font-weight: var(--fw-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.perf-row .day-strip { flex: 1; min-width: 0; }
+.perf-row .day { height: 20px; }
+.perf-row-up { flex: 0 0 56px; text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); font-size: var(--fs-sm); }
+@media (max-width: 600px) {
+  .issue-body { padding-left: var(--sp-4); }
+  .issue-items li { flex-direction: column; gap: var(--sp-1); }
+  .perf-stats dd { font-size: var(--fs-md); }
+  .perf-row-name { flex-basis: 90px; }
+  .perf-row-up { display: none; }
+  .legend-keys { display: none; }
+  .day-strip { gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .chev, .fig-link { transition: none; } }

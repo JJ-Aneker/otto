@@ -1,6 +1,6 @@
-// Otto vigila: "Revisar ahora". Revisa las webs del perfil y guarda el resultado.
+// Otto vigila: "Revisar ahora" / "Volver a comprobar". Revisa las webs del perfil, guarda el resultado y actualiza los avisos.
 const { route, requireUser, loadWorkspace, admin, HttpError } = require('../lib/http');
-const { checkSite } = require('../lib/watch');
+const { runSite } = require('../lib/watch');
 
 module.exports = route(['POST'], async (req, body) => {
   const user = await requireUser(req);
@@ -13,12 +13,11 @@ module.exports = route(['POST'], async (req, body) => {
   if (!sites.length) throw new HttpError(404, 'No hay webs que revisar');
 
   const checks = [];
+  let syncError = null;
   for (const s of sites) {
-    const r = await checkSite(s.url);
-    const row = { site_id: s.id, workspace_id: ws.id, ...r };
-    const { data, error: e2 } = await db.from('watch_checks').insert(row).select().single();
-    if (e2) throw new HttpError(500, e2.message);
-    checks.push(data);
+    const r = await runSite(db, s);
+    checks.push(r.check);
+    syncError = syncError || r.syncError;
   }
-  return { checks };
+  return { checks, syncError };
 });
