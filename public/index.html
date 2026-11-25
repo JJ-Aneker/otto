@@ -94,7 +94,6 @@ try {
       <button class="nav-item" data-module="count" onclick="showPage('count')">
         <svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>
         <span>Otto cuenta</span>
-        <span class="nav-soon">Ejemplo</span>
       </button>
       <button class="nav-item" data-module="order" onclick="showPage('order')">
         <svg class="icon" aria-hidden="true"><use href="#i-clipboard"/></svg>
@@ -383,7 +382,7 @@ try {
   <header class="page-head">
     <div>
       <h1 class="page-title">Otto cuenta</h1>
-      <p class="page-sub">Gestión económica simplificada. Facturas, gastos e ingresos organizados automáticamente.</p>
+      <p class="page-sub">Tus visitas, de dónde llegan y qué entradas funcionan, de un vistazo.</p>
     </div>
     <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
   </header>
@@ -432,6 +431,7 @@ try {
       <button class="tab" id="stab-instagram" onclick="switchSettingsTab('instagram',this)">Instagram</button>
       <button class="tab" id="stab-vigila" onclick="switchSettingsTab('vigila',this)">Vigila</button>
       <button class="tab" id="stab-ordena" onclick="switchSettingsTab('ordena',this)">Ordena</button>
+      <button class="tab" id="stab-count" onclick="switchSettingsTab('count',this)">Cuenta</button>
     </div>
 
     <!-- PERFIL SECTION -->
@@ -649,6 +649,9 @@ try {
         </div>
       </div>
     </div> <!-- /settings-ordena -->
+
+    <!-- CUENTA SECTION -->
+    <div id="settings-count" style="display:none"><div id="countSettingsBody"></div></div> <!-- /settings-count -->
 
   </div>
 </div>
@@ -2557,6 +2560,7 @@ selectWorkspace = async function (id) {
 <script src="ordena.js"></script>
 <script src="ordena-libro.js"></script>
 <script src="ordena-panel.js"></script>
+<script src="count.js"></script>
 <script src="modules-demo.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /* ============================================================
-   Otto · herramientas de ejemplo (Vigila, Cuenta, Ordena, Agenda)
+   Otto · herramientas de ejemplo (Agenda)
    Aún no existen: estos datos son inventados y sirven para ver
    cómo se verán en Inicio y en su propia pantalla.
    Cuando una herramienta sea real, se borra su bloque de aquí y
@@ -9,22 +9,6 @@
   const e = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   const DEMO = {
-    count: {
-      name: 'Cuenta',
-      intro: 'Tus visitas y estadísticas en un vistazo.',
-      figures: [
-        { label: 'Visitas del mes', value: '1.248', delta: '+12 %' },
-        { label: 'Páginas vistas', value: '3.906', delta: '+8 %' },
-        { label: 'Tiempo medio en la web', value: '2 min 14 s' },
-        { label: 'De dónde llegan', value: 'Google 62 %' },
-      ],
-      items: [
-        { tone: 'accent', title: 'Tu entrada sobre comuniones es la más leída esta semana', meta: '84 visitas · Un 31 % más que la semana pasada', when: 'Esta semana', label: 'Ver detalle' },
-        { tone: 'muted', title: 'Las visitas desde Instagram bajan un 18 %', meta: 'Quizá toque compartir un post nuevo en tus stories', when: 'Esta semana', label: 'Ver detalle' },
-        { tone: 'muted', title: 'Mejor día para publicar: martes por la mañana', meta: 'Según las visitas de los últimos tres meses', when: 'Último trimestre', label: 'Ver detalle' },
-      ],
-      today: [0],
-    },
     schedule: {
       name: 'Agenda',
       intro: 'Citas y reservas conectadas a tu calendario.',

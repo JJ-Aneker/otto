@@ -248,7 +248,7 @@ function onProviderChange(keepModel) {
 }
 
 function switchSettingsTab(tab, el) {
-  ['profile', 'wp', 'claude', 'instagram', 'vigila', 'ordena'].forEach(t => {
+  ['profile', 'wp', 'claude', 'instagram', 'vigila', 'ordena', 'count'].forEach(t => {
     const sec = $('settings-' + t); if (sec) sec.style.display = t === tab ? 'block' : 'none';
   });
   document.querySelectorAll('#page-settings .tab').forEach(b => b.classList.remove('active'));
