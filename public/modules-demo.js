@@ -9,22 +9,6 @@
   const e = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   const DEMO = {
-    watch: {
-      name: 'Vigila',
-      intro: 'Vigila tu web y tu SEO y te avisa cuando algo falla o cambia.',
-      figures: [
-        { label: 'Estado de la web', value: 'Funcionando' },
-        { label: 'Tiempo de carga', value: '1,4 s', delta: '-0,2 s' },
-        { label: 'Páginas con avisos', value: '3' },
-        { label: 'Última revisión', value: 'Hace 5 min' },
-      ],
-      items: [
-        { tone: 'warn', title: 'El certificado de seguridad caduca en 12 días', meta: 'paquisirvent.com · Renuévalo con tu proveedor de hosting', when: 'Hoy', label: 'Ver aviso' },
-        { tone: 'muted', title: '3 páginas sin descripción para Google', meta: 'Afecta a cómo aparecen en los resultados de búsqueda', when: 'Ayer', label: 'Ver páginas' },
-        { tone: 'muted', title: 'Una imagen pesa 4,2 MB y ralentiza la portada', meta: 'Banner-comunion.jpg · Conviene reducirla', when: 'Hace 3 días', label: 'Ver imagen' },
-      ],
-      today: [0, 1],
-    },
     count: {
       name: 'Cuenta',
       intro: 'Tus visitas y estadísticas en un vistazo.',

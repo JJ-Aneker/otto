@@ -548,3 +548,15 @@ a.btn{text-decoration:none}
 .thumb-row:empty { display: none; }
 .thumb-row img { width: 56px; height: 56px; object-fit: cover; border-radius: var(--r-sm); border: var(--bw) solid var(--border); }
 .suggested-img.in-post { outline: 2px solid var(--accent-text); outline-offset: -2px; }
+
+/* ── Otto vigila ──────────────────────────────────────────── */
+.dot-danger { background: var(--danger); }
+.dot-ok { background: var(--success); }
+.row-top { align-items: flex-start; }
+.row-top .dot { margin-top: 7px; }
+.row-wrap { white-space: normal; }
+.issue-items { list-style: none; margin-top: var(--sp-2); font-size: var(--fs-sm); color: var(--text-muted); }
+.issue-items li { padding: 2px 0; font-family: var(--font-mono); font-size: var(--fs-xs); overflow-wrap: anywhere; }
+.watch-suggest { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); flex-wrap: wrap; margin-top: var(--sp-3); padding: var(--sp-3); background: var(--accent-subtle); border-radius: var(--r-md); font-size: var(--fs-sm); }
+#page-watch .grp { margin-top: var(--sp-5); }
+#page-watch .page-actions { gap: var(--sp-2); }

@@ -89,7 +89,6 @@ try {
       <button class="nav-item" data-module="watch" onclick="showPage('watch')">
         <svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg>
         <span>Otto vigila</span>
-        <span class="nav-soon">Ejemplo</span>
       </button>
       <button class="nav-item" data-module="count" onclick="showPage('count')">
         <svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>
@@ -372,9 +371,9 @@ try {
   <header class="page-head">
     <div>
       <h1 class="page-title">Otto vigila</h1>
-      <p class="page-sub">Monitorización inteligente de tu web. Otto revisará tu sitio, alertará de caídas y analizará el tráfico.</p>
+      <p class="page-sub">Revisa tu web cada día y te avisa si algo falla o conviene mejorar.</p>
     </div>
-    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+    <div class="page-actions"><span id="watchHeadActions"></span><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
   </header>
   <div class="mod-body" id="mod-watch"></div>
 </div>
@@ -431,6 +430,7 @@ try {
       <button class="tab" id="stab-wp" onclick="switchSettingsTab('wp',this)">WordPress</button>
       <button class="tab" id="stab-claude" onclick="switchSettingsTab('claude',this)">IA y consumo</button>
       <button class="tab" id="stab-instagram" onclick="switchSettingsTab('instagram',this)">Instagram</button>
+      <button class="tab" id="stab-vigila" onclick="switchSettingsTab('vigila',this)">Vigila</button>
     </div>
 
     <!-- PERFIL SECTION -->
@@ -592,6 +592,24 @@ try {
         </div>
       </div>
     </div> <!-- /settings-instagram -->
+
+    <!-- VIGILA SECTION -->
+    <div id="settings-vigila" style="display:none">
+      <div class="card">
+        <div class="card-header"><h2>Webs que Otto vigila</h2><p>Otto las revisa cada día: que responden, cuánto tardan, el certificado de seguridad y lo básico de SEO.</p></div>
+        <div class="card-body">
+          <div id="watchSitesList"></div>
+          <div class="watch-suggest" id="watchSuggest" style="display:none"><span></span><button class="btn btn-secondary" onclick="OttoWatch.addOwn()">Vigilar esta web</button></div>
+          <h3 class="sub-h" style="margin-top:var(--sp-5)">Añadir una web</h3>
+          <div class="input-group"><label for="watchUrl">Dirección</label><input type="url" id="watchUrl" placeholder="https://tuweb.com"/></div>
+          <div class="input-group"><label for="watchLabel">Nombre <span class="label-note">Opcional</span></label><input type="text" id="watchLabel" placeholder="Por ejemplo: Web del estudio"/></div>
+          <div class="form-actions"><button class="btn btn-primary" onclick="OttoWatch.add()">Añadir web</button></div>
+          <div class="wp-status" id="watchStatus"></div>
+          <hr class="wp-divider"/>
+          <div class="wp-instructions"><strong>Qué revisa</strong><br>Que la web responde y cuánto tarda en cargar, cuántos días le quedan al certificado de seguridad, páginas sin descripción para Google y imágenes demasiado pesadas. Puedes vigilar hasta 5 webs por perfil. Solo se pueden vigilar webs públicas.</div>
+        </div>
+      </div>
+    </div> <!-- /settings-vigila -->
 
   </div>
 </div>
@@ -2495,6 +2513,7 @@ selectWorkspace = async function (id) {
   if (document.getElementById('page-home').classList.contains('active')) OttoHome.render();
 };
 </script>
+<script src="watch.js"></script>
 <script src="modules-demo.js"></script>
 </body>
 </html>
