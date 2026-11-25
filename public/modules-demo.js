@@ -25,23 +25,6 @@
       ],
       today: [0],
     },
-    order: {
-      name: 'Ordena',
-      intro: 'Sube facturas y tickets y Otto los ordena por ti.',
-      figures: [
-        { label: 'Documentos del mes', value: '14' },
-        { label: 'Por revisar', value: '3' },
-        { label: 'Gastos del mes', value: '1.286,40 €' },
-        { label: 'Ingresos del mes', value: '2.940,00 €' },
-      ],
-      items: [
-        { tone: 'warn', title: 'Factura de Laboratorio Foto Print sin categoría', meta: '218,90 € · Otto propone «Impresión y álbumes»', when: 'Hoy', label: 'Revisar' },
-        { tone: 'muted', title: 'Ticket de material de estudio', meta: '42,30 € · Pendiente de confirmar el importe', when: 'Ayer', label: 'Revisar' },
-        { tone: 'muted', title: 'Factura de hosting de paquisirvent.com', meta: '96,00 € · Ordenada en «Web y herramientas»', when: 'Hace 4 días', label: 'Abrir' },
-        { tone: 'muted', title: 'Factura emitida a Familia Ortega', meta: '350,00 € · Cobrada · Sesión de comunión', when: 'Hace 6 días', label: 'Abrir' },
-      ],
-      today: [0, 1],
-    },
     schedule: {
       name: 'Agenda',
       intro: 'Citas y reservas conectadas a tu calendario.',

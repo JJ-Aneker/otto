@@ -58,6 +58,7 @@ try {
     <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
     <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
     <symbol id="i-palette" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.7-.8 1.7-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.8-1.7 1.7-1.7H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.4-10-8.4Z"/></symbol>
     <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol>
     <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9Z"/></symbol>
@@ -98,7 +99,6 @@ try {
       <button class="nav-item" data-module="order" onclick="showPage('order')">
         <svg class="icon" aria-hidden="true"><use href="#i-clipboard"/></svg>
         <span>Otto ordena</span>
-        <span class="nav-soon">Ejemplo</span>
       </button>
       <button class="nav-item" data-module="schedule" onclick="showPage('schedule')">
         <svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>
@@ -395,9 +395,9 @@ try {
   <header class="page-head">
     <div>
       <h1 class="page-title">Otto ordena</h1>
-      <p class="page-sub">Gestión de proyectos y clientes. Seguimiento de trabajos, archivos y comunicaciones.</p>
+      <p class="page-sub">Sube facturas y tickets y Otto lee sus datos y los ordena por ti.</p>
     </div>
-    <div class="page-actions"><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
+    <div class="page-actions"><span id="orderHeadActions" class="head-actions"></span><button class="icon-btn" aria-label="Ayuda: abrir el manual" title="Ayuda" onclick="showPage('help')"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></button></div>
   </header>
   <div class="mod-body" id="mod-order"></div>
 </div>
@@ -431,6 +431,7 @@ try {
       <button class="tab" id="stab-claude" onclick="switchSettingsTab('claude',this)">IA y consumo</button>
       <button class="tab" id="stab-instagram" onclick="switchSettingsTab('instagram',this)">Instagram</button>
       <button class="tab" id="stab-vigila" onclick="switchSettingsTab('vigila',this)">Vigila</button>
+      <button class="tab" id="stab-ordena" onclick="switchSettingsTab('ordena',this)">Ordena</button>
     </div>
 
     <!-- PERFIL SECTION -->
@@ -610,6 +611,25 @@ try {
         </div>
       </div>
     </div> <!-- /settings-vigila -->
+
+    <!-- ORDENA SECTION -->
+    <div id="settings-ordena" style="display:none">
+      <div class="card">
+        <div class="card-header"><h2>Categorías de gasto</h2><p>Otto usa esta lista para clasificar cada factura o ticket. El concepto es lo concreto (Gasolina, Teléfono…) y el tipo de gasto es lo que verá tu gestoría.</p></div>
+        <div class="card-body">
+          <div id="orderCatsList"></div>
+          <h3 class="sub-h" id="catFormTitle" style="margin-top:var(--sp-5)">Añadir una categoría</h3>
+          <div class="input-group"><label for="catConcept">Concepto</label><input type="text" id="catConcept" placeholder="Por ejemplo: Teléfono"/></div>
+          <div class="input-group"><label for="catType">Tipo de gasto <span class="label-note">Para la gestoría</span></label><input type="text" id="catType" placeholder="Por ejemplo: Suministro"/></div>
+          <div class="input-group"><label for="catExamples">Ejemplos <span class="label-note">Opcional</span></label><textarea id="catExamples" rows="2" placeholder="Proveedores o palabras típicas, separados por comas. Por ejemplo: Digi, Movistar"></textarea></div>
+          <div class="form-actions"><button class="btn btn-primary" id="catSaveBtn" onclick="OttoOrder.saveCat()">Añadir categoría</button><button class="btn btn-secondary" id="catCancelBtn" onclick="OttoOrder.cancelCat()" hidden>Cancelar</button></div>
+          <div class="wp-status" id="catStatus"></div>
+          <hr class="wp-divider"/>
+          <div class="wp-instructions"><strong>Cómo se usan los ejemplos</strong><br>Si el nombre del proveedor coincide con uno de los ejemplos, Otto asigna esa categoría directamente, siempre igual y sin gastar IA. Si no coincide, la IA elige la que mejor encaje de esta lista.</div>
+          <div class="form-actions" style="margin-top:var(--sp-3)"><button class="btn btn-ghost" onclick="OttoOrder.restoreCats()">Restaurar categorías iniciales</button></div>
+        </div>
+      </div>
+    </div> <!-- /settings-ordena -->
 
   </div>
 </div>
@@ -2513,7 +2533,9 @@ selectWorkspace = async function (id) {
   if (document.getElementById('page-home').classList.contains('active')) OttoHome.render();
 };
 </script>
+<div class="doc-overlay" id="docOverlay" hidden onclick="if(event.target===this)OttoOrder.close()"></div>
 <script src="watch.js"></script>
+<script src="ordena.js"></script>
 <script src="modules-demo.js"></script>
 </body>
 </html>
