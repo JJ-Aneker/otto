@@ -337,6 +337,7 @@ async function publishToWordPress() {
   if (!ws.wp_url || !ws.wp_secret_id) { showWPStatus('publishStatus', 'Configura WordPress en este perfil', 'error'); return; }
   const status = $('wpStatus2').value;
   const postBody = { title: generatedData.titulo_seo || '', content: generatedData.post_html || '', slug: generatedData.slug || '', excerpt: generatedData.meta_descripcion || '', status };
+  if (generatedData.featuredMedia) postBody.featured_media = generatedData.featuredMedia;
   if (status === 'future') { const sc = $('wpSchedule').value; if (sc) postBody.date = new Date(sc).toISOString(); }
   const btn = $('publishBtn'); btn.disabled = true; btn.textContent = 'Publicando…';
   showWPStatus('publishStatus', '⏳ Enviando a WordPress…', 'info');
@@ -346,11 +347,12 @@ async function publishToWordPress() {
       const link = d.link || `${ws.wp_url}/?p=${d.id}`;
       const sl = status === 'publish' ? 'publicado' : status === 'future' ? 'programado' : 'guardado como borrador';
       showWPStatus('publishStatus', `Post ${sl}. <a href="${link}" target="_blank" style="color:var(--success);text-decoration:underline">Ver en WordPress →</a>`, 'success');
-      if (status === 'publish') {
-        generatedData.status = 'published'; generatedData.wpLink = link;
-        const i = history.findIndex(h => (h.dbId && h.dbId === generatedData.dbId) || h.titulo_seo === generatedData.titulo_seo);
-        if (i >= 0) { generatedData.dbId = history[i].dbId; history[i] = generatedData; await savePostToDB(generatedData); renderHistory(); }
-      }
+      // Todo lo enviado a WordPress queda en el historial, esté o no guardado antes
+      generatedData.wpLink = link; generatedData.wpId = d.id;
+      generatedData.status = status === 'publish' ? 'published' : 'draft';
+      generatedData.publishedAs = status;
+      await saveToHistory(true);
+      renderHistory();
       showToast('Enviado a WordPress', 'success');
     } else showWPStatus('publishStatus', `Error: ${d.message || d.error || JSON.stringify(d)}`, 'error');
   } catch (e) { showWPStatus('publishStatus', `${e.message}`, 'error'); }
@@ -411,7 +413,7 @@ async function savePostToDB(d) {
   if (error) throw new Error(error.message);
 }
 
-async function saveToHistory() {
+async function saveToHistory(quiet) {
   if (!generatedData) { showToast('Nada que guardar', 'error'); return; }
   try {
     const idx = history.findIndex(h => (h.dbId && h.dbId === generatedData.dbId) || h.titulo_seo === generatedData.titulo_seo);
@@ -420,8 +422,8 @@ async function saveToHistory() {
     if (idx >= 0) history[idx] = generatedData; else history.unshift(generatedData);
     const t = calTopics.find(x => x.id === generatedData.topicId);
     if (t && !t.done) { t.done = true; saveCalTopics(); }
-    updateBadges(); showToast('Post guardado', 'success');
-  } catch (e) { showToast('Error guardando: ' + e.message, 'error'); }
+    updateBadges(); if (!quiet) showToast('Post guardado', 'success');
+  } catch (e) { showToast('Error guardando el post en el historial: ' + e.message, 'error'); }
 }
 
 async function deleteHistory(i) {

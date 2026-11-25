@@ -478,6 +478,7 @@ try {
           <div class="publish-summary">
             <strong id="publishPostTitle">—</strong>
             <span class="muted-note" id="publishPostMeta">—</span>
+            <div class="thumb-row" id="publishImages"></div>
           </div>
           <div class="input-group">
             <label for="wpStatus2">Estado</label>
@@ -1003,7 +1004,7 @@ FORMATO: Solo JSON válido, sin backticks:
     if(data.usage) trackTokenUsage(data.usage.input_tokens, data.usage.output_tokens, parsed.titulo_seo);
     clearInterval(iv);
     generatedData={...parsed,generatedAt:new Date().toISOString(),season:currentSeason,topicId:selectedTopic?.id||null,status:'draft'};
-    renderResult(parsed);updatePublishPanel();
+    renderResult(parsed,{fresh:true});updatePublishPanel();
   } catch(e){
     clearInterval(iv);
     document.getElementById('loadingState').classList.remove('visible');
@@ -1013,7 +1014,8 @@ FORMATO: Solo JSON válido, sin backticks:
   } finally { document.getElementById('generateBtn').disabled=false; }
 }
 
-function renderResult(d){
+function renderResult(d,opts){
+  opts=opts||{};
   document.getElementById('loadingState').classList.remove('visible');
   document.getElementById('resultBody').classList.add('visible');
   document.getElementById('outputTabs').style.display='flex';
@@ -1038,16 +1040,26 @@ function renderResult(d){
   // Auto-populate editor
   const editor = document.getElementById('postEditor');
   if (editor) editor.value = d.post_texto || '';
-  // Suggest images if media loaded
-  // Suggest images — if media already loaded use it, otherwise show load prompt
-  setTimeout(() => {
-    if (allMedia.length > 0) {
-      suggestImagesForPost();
-    } else {
-      const grid = document.getElementById('suggestedImgGrid');
-      if (grid) grid.innerHTML = '<p class="muted-note">Carga primero las imágenes en Imágenes y luego vuelve aquí.</p>';
+  // Sugerir imágenes del almacén: si aún no están cargadas, se cargan solas
+  setTimeout(() => autoSuggestImages(!!opts.fresh), 300);
+}
+
+async function autoSuggestImages(fresh) {
+  const grid = document.getElementById('suggestedImgGrid');
+  if (!generatedData) return;
+  if (!allMedia.length) {
+    if (!(typeof ws !== 'undefined' && ws && ws.wp_url && ws.wp_secret_id)) {
+      if (grid) grid.innerHTML = '<p class="muted-note">Conecta WordPress en Configuración para que Otto pueda proponer imágenes de tu biblioteca.</p>';
+      return;
     }
-  }, 400);
+    if (grid) grid.innerHTML = '<p class="muted-note">Cargando imágenes de tu biblioteca…</p>';
+    await loadMedia(1, { silent: true });
+  }
+  if (!allMedia.length) {
+    if (grid) grid.innerHTML = '<p class="muted-note">No se han podido cargar las imágenes de WordPress. Revisa la conexión en Configuración.</p>';
+    return;
+  }
+  await suggestImagesForPost(fresh);
 }
 
 function showResultTab(tab,el){
@@ -1175,7 +1187,10 @@ function updatePublishPanel(){
   if(!generatedData){np.style.display='block';pp.style.display='none';return;}
   np.style.display='none';pp.style.display='block';
   document.getElementById('publishPostTitle').textContent=generatedData.titulo_seo||'—';
-  document.getElementById('publishPostMeta').textContent=`${generatedData.categoria_wordpress||'—'} · ${generatedData.keyword_principal||''}`;
+  const nImg=(generatedData.images||[]).length;
+  document.getElementById('publishPostMeta').textContent=`${generatedData.categoria_wordpress||'—'} · ${generatedData.keyword_principal||''} · ${nImg===1?'1 imagen':nImg+' imágenes'} en el post`;
+  const pi=document.getElementById('publishImages');
+  if(pi) pi.innerHTML=(generatedData.images||[]).map(i=>`<img src="${esc(i.thumbnail||i.url)}" alt="${esc(i.alt||'')}"/>`).join('');
 }
 
 async function publishToWordPress(){
@@ -1256,56 +1271,57 @@ function refreshPreview() {
 // ═══════════════════════════════
 // AUTO-SUGGEST IMAGES FROM LIBRARY
 // ═══════════════════════════════
-async function suggestImagesForPost() {
+async function suggestImagesForPost(fresh) {
   if (!generatedData || !allMedia.length) return;
-  selectedSuggested = []; // Reset before pre-selecting
+  selectedSuggested = [];
 
   const category = generatedData.categoria_wordpress?.toLowerCase() || '';
   const keyword = generatedData.keyword_principal?.toLowerCase() || '';
   const titulo = generatedData.titulo_seo?.toLowerCase() || '';
 
-  // Map WP category to media category
+  // Categoría de imagen que encaja con el post
   let targetCat = 'general';
-  if (category.includes('beb') || keyword.includes('newborn') || keyword.includes('recién nacido')) targetCat = 'newborn';
+  if (category.includes('beb') || category.includes('newborn') || keyword.includes('newborn') || keyword.includes('recién nacido')) targetCat = 'newborn';
   else if (category.includes('embarazo') || keyword.includes('embarazo')) targetCat = 'embarazo';
   else if (category.includes('famil') || titulo.includes('famil')) targetCat = 'familia';
   else if (category.includes('comuni') || titulo.includes('comuni')) targetCat = 'comunion';
   else if (category.includes('bautizo') || titulo.includes('bautizo')) targetCat = 'bautizo';
   else if (titulo.includes('smash') || titulo.includes('cumple')) targetCat = 'smashcake';
 
-  // Get best matches
-  const matches = allMedia
-    .filter(img => img.category === targetCat || targetCat === 'general')
-    .slice(0, 8);
+  // Primero las de su categoría; si no hay suficientes, se completa con el resto
+  const same = targetCat === 'general' ? [] : allMedia.filter(img => img.category === targetCat);
+  const rest = allMedia.filter(img => !same.includes(img));
+  const matches = [...same, ...rest].slice(0, 8);
 
   const grid = document.getElementById('suggestedImgGrid');
   if (!grid) return;
+  if (!matches.length) { grid.innerHTML = '<p class="muted-note">Tu biblioteca de WordPress no tiene imágenes todavía.</p>'; return; }
 
-  if (!matches.length) {
-    grid.innerHTML = '<p style="font-size:12px;color:var(--text-muted)">Carga primero las imágenes en la pestaña Imágenes.</p>';
-    return;
+  // Post nuevo: las 3 mejores se insertan solas en el post
+  if (fresh && !generatedData.imagesApplied) {
+    applyImagesToPost(matches.slice(0, 3), true);
+    generatedData.imagesApplied = true;
   }
 
   grid.innerHTML = '';
   grid.style.gridTemplateColumns = 'repeat(auto-fill,minmax(130px,1fr))';
-
-  matches.forEach((img, i) => {
+  const current = generatedData.post_html || '';
+  matches.forEach(img => {
+    const used = !!img.url && current.includes(img.url);
     const div = document.createElement('div');
-    div.className = 'suggested-img' + (i < 3 ? ' auto-selected' : '');
-    if (i < 3) selectedSuggested.push(img);
-    div.onclick = () => toggleSuggestedImg(img, div);
+    div.className = 'suggested-img' + (used ? ' in-post' : '');
+    div.onclick = () => { if (!used) toggleSuggestedImg(img, div); };
     div.dataset.imgId = img.id;
     div.innerHTML = `
-      <img src="${img.thumbnail}" alt="${img.alt||img.filename}" loading="lazy"/>
+      <img src="${esc(img.thumbnail)}" alt="${esc(img.alt || img.filename)}" loading="lazy"/>
       <div class="si-info">
-        <div class="si-name">${img.filename}</div>
-        ${i < 3 ? '<div class="si-match">Sugerida</div>' : ''}
-      </div>
-    `;
+        <div class="si-name">${esc(img.filename)}</div>
+        ${used ? '<div class="si-match">En el post</div>' : ''}
+      </div>`;
     grid.appendChild(div);
   });
-
   updateSuggestedSelection();
+  updatePublishPanel();
 }
 
 let selectedSuggested = [];
@@ -1325,45 +1341,38 @@ function toggleSuggestedImg(img, el) {
 function insertSuggestedIntoPost() {
   if (!generatedData) { showToast('Primero genera un post', 'error'); return; }
   if (!selectedSuggested.length) { showToast('Selecciona al menos una imagen', 'error'); return; }
+  const n = applyImagesToPost(selectedSuggested, false);
+  selectedSuggested = [];
+  suggestImagesForPost(false);
+  showToast(n ? `${n} imagen${n > 1 ? 'es' : ''} insertada${n > 1 ? 's' : ''} en el post` : 'Esas imágenes ya estaban en el post', 'success');
+}
 
-  // Build figure tags for each selected image
-  const figures = selectedSuggested.map(img =>
-    `<figure class="wp-block-image size-large"><img src="${img.url}" alt="${img.alt || img.title || img.filename}" /></figure>`
-  );
-
-  // Split HTML into paragraphs/blocks to distribute images evenly
-  let html = generatedData.post_html || '';
+// Reparte las imágenes a lo largo del HTML del post. Devuelve cuántas ha añadido.
+function applyImagesToPost(imgs, silent) {
+  if (!generatedData) return 0;
+  const html = generatedData.post_html || '';
+  const fresh = imgs.filter(img => img && img.url && !html.includes(img.url));
+  if (!fresh.length) return 0;
+  const figures = fresh.map(img =>
+    `<figure class="wp-block-image size-large"><img src="${esc(img.url)}" alt="${esc(img.alt || img.title || img.filename)}" /></figure>`);
   const blocks = html.split(/(?<=<\/(?:p|h2|h3|ul|ol)>)/gi).filter(b => b.trim());
-  const total = blocks.length;
-  const imgs = figures.length;
-
-  if (total < 2 || imgs === 0) {
-    // Fallback: just append all at end before last block
-    const last = blocks.pop();
-    generatedData.post_html = blocks.join('\n') + '\n' + figures.join('\n') + '\n' + last;
+  const total = blocks.length, n = figures.length;
+  if (total < 2) {
+    generatedData.post_html = (html + '\n' + figures.join('\n')).trim();
   } else {
-    // Distribute: calculate insertion points spread across the post
-    // e.g. 3 images in a 10-block post → insert at blocks 2, 5, 8
-    const positions = figures.map((_, i) => {
-      return Math.round((i + 1) * (total / (imgs + 1)));
-    });
-
-    // Insert images at calculated positions (from end to start to preserve indices)
+    const positions = figures.map((_, i) => Math.round((i + 1) * (total / (n + 1))));
     const result = [...blocks];
-    [...positions].reverse().forEach((pos, ri) => {
-      const imgIdx = imgs - 1 - ri;
-      result.splice(pos, 0, figures[imgIdx]);
-    });
-
+    [...positions].reverse().forEach((pos, ri) => result.splice(pos, 0, figures[n - 1 - ri]));
     generatedData.post_html = result.join('\n');
   }
-
-  document.getElementById('outHTML').textContent = generatedData.post_html;
-  showToast(`${selectedSuggested.length} imagen${selectedSuggested.length > 1 ? 'es' : ''} distribuida${selectedSuggested.length > 1 ? 's' : ''} en el post`, 'success');
-  selectedSuggested = [];
-  updateSuggestedSelection();
-  // Refresh preview if visible
-  refreshPreview();
+  // Imagen destacada: la primera que se añade al post
+  const list = generatedData.images || [];
+  fresh.forEach(img => list.push({ id: img.id, url: img.url, thumbnail: img.thumbnail, alt: img.alt || img.title || img.filename }));
+  generatedData.images = list;
+  if (!generatedData.featuredMedia && list[0]) generatedData.featuredMedia = list[0].id;
+  const out = document.getElementById('outHTML'); if (out) out.textContent = generatedData.post_html;
+  refreshPreview(); updatePublishPanel();
+  return fresh.length;
 }
 
 function updateSuggestedSelection() {
@@ -1988,14 +1997,14 @@ function guessCategory(filename, alt, title) {
   return 'general';
 }
 
-async function loadMedia(page = 1) {
+async function loadMedia(page = 1, opts = {}) {
   const url = (wpConfig.url || document.getElementById('wpUrl')?.value || '').trim().replace(/\/$/, '');
   const user = (wpConfig.user || document.getElementById('wpUser')?.value || '').trim();
   const pass = (wpConfig.pass || document.getElementById('wpPass')?.value || '').trim();
 
   if (!url || !user) {
-    showToast('Primero configura la conexión WordPress en la pestaña ', 'error');
-    return;
+    if (!opts.silent) showToast('Primero configura WordPress en Configuración', 'error');
+    return false;
   }
 
   document.getElementById('mediaEmpty').innerHTML = '<div class="spinner" style="margin:0 auto var(--sp-3)"></div><p>Cargando imágenes…</p>';
@@ -2027,10 +2036,12 @@ async function loadMedia(page = 1) {
     document.getElementById('tagAllBtn').style.display = 'inline-block';
     filterMedia();
     updatePagination(data.total);
+    return true;
 
   } catch(e) {
     document.getElementById('mediaEmpty').innerHTML = `<p>${esc(e.message)}</p>`;
     document.getElementById('mediaEmpty').style.display = 'block';
+    return false;
   }
 }
 

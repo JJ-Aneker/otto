@@ -542,3 +542,9 @@ a.btn{text-decoration:none}
 .figs-row dd { text-align: left; font-size: var(--fs-xl); }
 .row .btn:disabled { opacity: 0.6; }
 @media (max-width: 768px) { .figs-row { grid-template-columns: 1fr 1fr; } .figs-row > div { border-bottom: var(--bw) solid var(--border); } }
+
+/* ── Imágenes del post ────────────────────────────────────── */
+.thumb-row { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-top: var(--sp-2); }
+.thumb-row:empty { display: none; }
+.thumb-row img { width: 56px; height: 56px; object-fit: cover; border-radius: var(--r-sm); border: var(--bw) solid var(--border); }
+.suggested-img.in-post { outline: 2px solid var(--accent-text); outline-offset: -2px; }
