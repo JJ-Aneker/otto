@@ -5,7 +5,7 @@
    La lectura con IA la hace el servidor (api/ordena).
    ============================================================ */
 (function () {
-  const O = { docs: [], cats: [], loaded: false, filter: 'all', period: null, dir: 'compra', packing: null, busy: new Set(), queue: { total: 0, done: 0 }, openId: null, catsError: false, editCat: null };
+  const O = { docs: [], cats: [], loaded: false, filter: 'all', period: null, dir: 'compra', packing: null, report: null, busy: new Set(), queue: { total: 0, done: 0 }, openId: null, catsError: false, editCat: null };
 
   const MAX_MB = 10;
   const EXT_MIME = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
@@ -235,6 +235,12 @@
       ${S.buy.length || S.sell.length ? `<p class="sum-diff">${diffTxt}: <strong>${eur(Math.abs(S.diff))}</strong> <span class="muted-note">· Es solo una referencia: tu gestoría confirma la liquidación.</span></p>` : ''}</details>`;
   }
 
+  function reportHtml() {
+    const r = O.report; if (!r) return '';
+    return `<div class="callout report ${r.tone || ''}" role="status"><div class="report-head"><strong>${esc(r.title)}</strong><button class="icon-btn" aria-label="Cerrar aviso" onclick="OttoOrder.closeReport()"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <ul>${r.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul></div>`;
+  }
+
   function renderPage() {
     renderHead();
     const el = document.getElementById('mod-order'); if (!el) return;
@@ -282,9 +288,12 @@
         <div class="chips" role="group" aria-label="Filtrar documentos">${chip('all', 'Todos')}${chip('review', 'Por revisar')}${chip('done', 'Revisados')}</div>
         <div class="export-bar">
           <button class="btn btn-secondary" id="xlsBtn" onclick="OttoOrder.exportXlsx()" ${pk || !allInP.length ? 'disabled' : ''}>Descargar Excel</button>
+          <button class="btn btn-secondary" id="libroBtn" onclick="document.getElementById('libroFile').click()" ${pk || !allInP.length ? 'disabled' : ''} title="Añade estos documentos al Excel de ingresos y gastos que te pide la gestoría">Rellenar Excel de la gestoría</button>
+          <input type="file" id="libroFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onchange="OttoOrder.fillLibro(this)">
           <button class="btn btn-primary" id="packBtn" onclick="OttoOrder.exportPack()" ${pk || !allInP.length ? 'disabled' : ''} title="${pendTotal ? pendTotal + ' por revisar en este periodo' : 'Excel y PDFs renombrados en un ZIP'}">${pk ? (pk.total ? `Preparando ${Math.min(pk.done + 1, pk.total)} de ${pk.total}…` : 'Preparando…') : 'Paquete para la gestoría'}</button>
         </div>
       </div>
+      ${reportHtml()}
       ${list.length ? `<ul class="rows doc-list">${list.map(row).join('')}</ul>` : `<div class="rows-empty"><p>${dirDocs.length ? 'No hay documentos con este filtro.' : (sale ? 'No hay facturas emitidas en este periodo.' : 'No hay compras en este periodo.')}</p></div>`}`;
   }
 
@@ -590,6 +599,35 @@
     } finally { O.packing = null; renderPage(); }
   }
 
+  /* ── Rellenar el libro de la gestoría ── */
+  async function fillLibro(input) {
+    const file = input.files[0]; input.value = '';
+    if (!file || O.packing) return;
+    const docs = O.docs.filter(d => inPeriod(d) && d.status === 'done');
+    const skipped = O.docs.filter(d => inPeriod(d) && d.status !== 'done').length;
+    if (!docs.length) { O.report = { tone: 'warn', title: 'No hay documentos revisados en este periodo', lines: ['Revisa los documentos y vuelve a intentarlo. Solo se añaden los que están revisados.'] }; renderPage(); return; }
+    if (skipped && !confirm(`Hay ${skipped} ${skipped === 1 ? 'documento' : 'documentos'} sin revisar que no se añadirán al libro. ¿Continuar?`)) return;
+    O.report = null; O.packing = { done: 0, total: 0 }; renderPage();
+    try {
+      const JSZip = await loadLib('jszip', 'JSZip');
+      if (!window.OttoLibro) throw new Error('No se pudo cargar el módulo del libro.');
+      const { blob, report: R } = await OttoLibro.fill(await file.arrayBuffer(), docs, JSZip);
+      const lines = [];
+      Object.entries(R.added).filter(([, n]) => n).forEach(([k, n]) => lines.push(`${k}: ${n} ${n === 1 ? 'fila añadida' : 'filas añadidas'}`));
+      if (R.dup) lines.push(`${R.dup} ${R.dup === 1 ? 'ya estaba' : 'ya estaban'} en el libro y no se ${R.dup === 1 ? 'ha repetido' : 'han repetido'}.`);
+      if (R.otherYear) lines.push(`${R.otherYear} ${R.otherYear === 1 ? 'documento es' : 'documentos son'} de otro año distinto al del libro (${R.year}) y no se ${R.otherYear === 1 ? 'ha añadido' : 'han añadido'}.`);
+      if (R.noDate) lines.push(`${R.noDate} sin fecha, no se ${R.noDate === 1 ? 'ha añadido' : 'han añadido'}.`);
+      if (R.toOtros.length) lines.push(`Sin tipo de gasto reconocido, puestos en «Otros»: ${R.toOtros.slice(0, 6).join(', ')}${R.toOtros.length > 6 ? '…' : ''}. Puedes cambiarlo en el libro o ajustar el tipo de gasto de la categoría en Ajustes.`);
+      if (R.noRate) lines.push(`${R.noRate} sin tipo de IVA; revisa esa celda en el libro.`);
+      R.lines.forEach(l => lines.push(l));
+      if (R.total) lines.push('Los totales se recalculan al abrir el Excel. Compruébalo antes de enviarlo.');
+      O.report = { tone: R.total ? 'ok' : 'warn', title: R.total ? `Libro rellenado: ${R.total} ${R.total === 1 ? 'fila' : 'filas'}` : 'No se ha añadido ninguna fila', lines };
+      if (R.total) saveBlob(blob, file.name.replace(/\.xlsx$/i, '') + ' (Otto).xlsx');
+    } catch (e) {
+      O.report = { tone: 'danger', title: 'No se pudo rellenar el libro', lines: [e.message || 'Error desconocido'] };
+    } finally { O.packing = null; renderPage(); }
+  }
+
   /* ── Inicio ── */
   const when = iso => {
     const d = new Date(iso); if (isNaN(d)) return '';
@@ -636,7 +674,8 @@
     dir(x) { O.dir = x; O.filter = 'all'; renderPage(); },
     exportXlsx() { return exportData(false); },
     exportPack() { return exportData(true); },
-    reset() { O.docs = []; O.cats = []; O.loaded = false; O.period = null; O.dir = 'compra'; O.filter = 'all'; O.openId = null; O.editCat = null; close(); renderAll(); },
+    fillLibro, closeReport() { O.report = null; renderPage(); },
+    reset() { O.docs = []; O.cats = []; O.loaded = false; O.period = null; O.dir = 'compra'; O.report = null; O.filter = 'all'; O.openId = null; O.editCat = null; close(); renderAll(); },
   };
 
   // Arrastrar archivos sobre la pantalla
