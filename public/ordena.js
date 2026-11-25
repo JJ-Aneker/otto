@@ -5,7 +5,7 @@
    La lectura con IA la hace el servidor (api/ordena).
    ============================================================ */
 (function () {
-  const O = { docs: [], cats: [], loaded: false, filter: 'all', month: null, busy: new Set(), queue: { total: 0, done: 0 }, openId: null, catsError: false, editCat: null };
+  const O = { docs: [], cats: [], loaded: false, filter: 'all', period: null, dir: 'compra', packing: null, busy: new Set(), queue: { total: 0, done: 0 }, openId: null, catsError: false, editCat: null };
 
   const MAX_MB = 10;
   const EXT_MIME = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
@@ -14,6 +14,7 @@
     sin_proveedor: 'Falta el proveedor', sin_nif_proveedor: 'Sin NIF del proveedor', sin_fecha: 'Sin fecha', sin_total: 'Sin importe total',
     sin_categoria: 'Sin categoría', importes_no_cuadran: 'Los importes no cuadran', duplicado: 'Posible duplicado',
   };
+  const flagTxt = (f, dir) => dir === 'venta' ? ({ sin_proveedor: 'Falta el cliente', sin_nif_proveedor: 'Sin NIF del cliente' }[f] || FLAG_TXT[f] || f) : (FLAG_TXT[f] || f);
 
   // Maestro de categorías de partida (editable en Configuración → Ordena)
   const DEFAULT_CATS = [
@@ -47,6 +48,11 @@
   };
   const shortDate = iso => { const d = new Date(iso + (String(iso).length === 10 ? 'T00:00:00' : '')); return isNaN(d) ? '' : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }); };
   const monthOf = d => String(d.doc_date || d.created_at || '').slice(0, 7);
+  const dateOf = d => String(d.doc_date || d.created_at || '').slice(0, 10);
+  const quarterOf = d => { const t = dateOf(d); return t.length >= 7 ? t.slice(0, 4) + '-Q' + Math.ceil(Number(t.slice(5, 7)) / 3) : ''; };
+  const isQ = p => String(p).includes('Q');
+  const periodName = p => p === 'all' ? 'Todos los periodos' : isQ(p) ? `T${p.slice(-1)} ${p.slice(0, 4)}` : monthName(p);
+  const curQuarter = () => { const d = new Date(); return d.getFullYear() + '-Q' + Math.ceil((d.getMonth() + 1) / 3); };
   const monthName = ym => { const [y, m] = ym.split('-').map(Number); const t = new Date(y, m - 1, 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }); return t.charAt(0).toUpperCase() + t.slice(1); };
   const curMonth = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
   const stripTxt = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -64,7 +70,7 @@
     if (!d.supplier_tax_id) f.push('sin_nif_proveedor');
     if (!d.doc_date) f.push('sin_fecha');
     if (d.total === null || d.total === undefined) f.push('sin_total');
-    if (!d.concept) f.push('sin_categoria');
+    if (!d.concept && d.direction !== 'venta') f.push('sin_categoria');
     if (d.total !== null && d.total !== undefined) {
       if (d.base_amount != null && d.vat_amount != null && Math.abs(d.base_amount + d.vat_amount - d.total) > 0.05) f.push('importes_no_cuadran');
       else if (d.base_amount != null && d.vat_rate != null && d.vat_amount == null && Math.abs(d.base_amount * (1 + d.vat_rate / 100) - d.total) > 0.1) f.push('importes_no_cuadran');
@@ -84,7 +90,7 @@
     O.docs = (d && d.data) || []; O.cats = (c && c.data) || [];
     if (!O.catsError && !O.cats.length) await seedCats(false);
     O.loaded = true;
-    if (!O.month) { const cm = curMonth(); O.month = O.docs.some(x => monthOf(x) === cm) ? cm : 'all'; }
+    if (!O.period) { const cq = curQuarter(); O.period = O.docs.some(x => quarterOf(x) === cq) ? cq : 'all'; }
     renderAll();
   }
 
@@ -139,8 +145,8 @@
     const path = `${ws.id}/${id}.${p.ext}`;
     const up = await sb.storage.from('ordena').upload(path, p.blob, { contentType: p.mime, upsert: false });
     if (up && up.error) throw new Error(up.error.message);
-    const row = { id, workspace_id: ws.id, file_path: path, file_name: p.name.slice(0, 200), mime: p.mime, file_size: p.blob.size, status: 'pending', created_at: new Date().toISOString() };
-    const ins = await sb.from('order_docs').insert({ id, workspace_id: ws.id, file_path: path, file_name: row.file_name, mime: p.mime, file_size: p.blob.size, status: 'pending' });
+    const row = { id, workspace_id: ws.id, direction: O.dir, file_path: path, file_name: p.name.slice(0, 200), mime: p.mime, file_size: p.blob.size, status: 'pending', created_at: new Date().toISOString() };
+    const ins = await sb.from('order_docs').insert({ id, workspace_id: ws.id, direction: O.dir, file_path: path, file_name: row.file_name, mime: p.mime, file_size: p.blob.size, status: 'pending' });
     if (ins && ins.error) { await sb.storage.from('ordena').remove([path]); throw new Error(ins.error.message); }
     O.docs.unshift({ ...row, flags: [], lines: [] });
     O.busy.add(id); renderAll();
@@ -163,15 +169,41 @@
   }
 
   /* ── Pantalla ── */
-  function inPeriod(d) { return O.month === 'all' || monthOf(d) === O.month; }
+  function inPeriod(d) { return O.period === 'all' || (isQ(O.period) ? quarterOf(d) === O.period : monthOf(d) === O.period); }
+  const isSale = d => d.direction === 'venta';
+  const needsReview = d => d.status === 'review' || d.status === 'error';
+  const sumOf = (a, f) => a.reduce((x, d) => x + f(d), 0);
+  const tot = d => Number(d.total) || 0;
   function figuresFor(docs) {
-    const buys = docs.filter(d => d.direction === 'compra');
-    return {
-      count: docs.length,
-      review: docs.filter(d => d.status === 'review' || d.status === 'error').length,
-      spend: buys.reduce((a, d) => a + (Number(d.total) || 0), 0),
-      vat: buys.reduce((a, d) => a + vatOf(d), 0),
-    };
+    const buys = docs.filter(d => !isSale(d)), sales = docs.filter(isSale);
+    return { count: docs.length, review: docs.filter(needsReview).length, spend: sumOf(buys, tot), vat: sumOf(buys, vatOf), income: sumOf(sales, tot), vatOut: sumOf(sales, vatOf) };
+  }
+  const baseOf = d => d.base_amount != null ? Number(d.base_amount) : (d.vat_amount != null && d.total != null ? Number(d.total) - Number(d.vat_amount) : 0);
+
+  // Agrupa por tipo de IVA (para el resumen y para el Excel)
+  const r2 = r => { ['base', 'vat', 'total'].forEach(k => { if (k in r) r[k] = Math.round(r[k] * 100) / 100; }); return r; };
+  function taxRows(docs) {
+    const m = new Map();
+    docs.forEach(d => {
+      const k = d.vat_rate == null ? 'Sin desglosar' : String(d.vat_rate).replace('.', ',') + ' %';
+      const r = m.get(k) || { k, rate: d.vat_rate == null ? -1 : Number(d.vat_rate), base: 0, vat: 0, total: 0, n: 0 };
+      r.base += baseOf(d); r.vat += vatOf(d); r.total += tot(d); r.n++; m.set(k, r);
+    });
+    return [...m.values()].map(r2).sort((a, b) => b.rate - a.rate);
+  }
+  function typeRows(docs) {
+    const m = new Map();
+    docs.forEach(d => {
+      const k = d.expense_type || 'Sin categoría';
+      const r = m.get(k) || { k, base: 0, total: 0, n: 0 };
+      r.base += baseOf(d); r.total += tot(d); r.n++; m.set(k, r);
+    });
+    return [...m.values()].map(r2).sort((a, b) => b.total - a.total);
+  }
+  const grand = rows => r2({ base: sumOf(rows, r => r.base), vat: sumOf(rows, r => r.vat || 0), total: sumOf(rows, r => r.total), n: sumOf(rows, r => r.n) });
+  function summaryData(docs) {
+    const buy = taxRows(docs.filter(d => !isSale(d))), sell = taxRows(docs.filter(isSale));
+    return { buy, sell, exp: typeRows(docs.filter(d => !isSale(d))), diff: Math.round((grand(sell).vat - grand(buy).vat) * 100) / 100 };
   }
 
   function renderHead() {
@@ -180,7 +212,27 @@
     el.innerHTML = `<input type="file" id="orderFile" accept="application/pdf,image/jpeg,image/png,image/webp" multiple hidden onchange="OttoOrder.pick(this)">
       <input type="file" id="orderCam" accept="image/*" capture="environment" hidden onchange="OttoOrder.pick(this)">
       <button class="btn btn-secondary only-touch" onclick="document.getElementById('orderCam').click()" ${busy ? 'disabled' : ''}>Hacer foto</button>
-      <button class="btn btn-primary" onclick="document.getElementById('orderFile').click()" ${busy ? 'disabled' : ''}>${busy ? `Leyendo ${Math.min(q.done + 1, q.total)} de ${q.total}…` : 'Subir documentos'}</button>`;
+      <button class="btn btn-primary" onclick="document.getElementById('orderFile').click()" ${busy ? 'disabled' : ''}>${busy ? `Leyendo ${Math.min(q.done + 1, q.total)} de ${q.total}…` : (O.dir === 'venta' ? 'Subir factura emitida' : 'Subir factura o ticket')}</button>`;
+  }
+
+  function sumTable(title, rows, cols) {
+    if (!rows.length) return '';
+    const g = grand(rows);
+    return `<section class="sum-block"><h3>${esc(title)}</h3><table class="sum-table"><thead><tr><th></th>${cols.map(c => `<th>${esc(c[0])}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(r => `<tr><th scope="row">${esc(r.k)}</th>${cols.map(c => `<td>${r.rate === -1 && c[1] !== 'total' ? '—' : eur(r[c[1]])}</td>`).join('')}</tr>`).join('')}</tbody>
+      <tfoot><tr><th scope="row">Total</th>${cols.map(c => `<td>${eur(g[c[1]])}</td>`).join('')}</tr></tfoot></table></section>`;
+  }
+  function summaryHtml(docs) {
+    if (O.period === 'all' || !docs.length) return '';
+    const S = summaryData(docs);
+    const diffTxt = S.diff >= 0 ? 'IVA repercutido menos soportado' : 'IVA soportado menos repercutido';
+    return `<details class="sum" open><summary>Resumen de ${esc(periodName(O.period))}</summary>
+      <div class="sum-grid">
+        ${sumTable('IVA soportado (compras)', S.buy, [['Base', 'base'], ['Cuota', 'vat'], ['Total', 'total']])}
+        ${sumTable('IVA repercutido (ventas)', S.sell, [['Base', 'base'], ['Cuota', 'vat'], ['Total', 'total']])}
+        ${sumTable('Gastos por tipo de gasto', S.exp, [['Base', 'base'], ['Total', 'total']])}
+      </div>
+      ${S.buy.length || S.sell.length ? `<p class="sum-diff">${diffTxt}: <strong>${eur(Math.abs(S.diff))}</strong> <span class="muted-note">· Es solo una referencia: tu gestoría confirma la liquidación.</span></p>` : ''}</details>`;
   }
 
   function renderPage() {
@@ -188,32 +240,52 @@
     const el = document.getElementById('mod-order'); if (!el) return;
     if (!O.loaded) { el.innerHTML = '<p class="muted-note">Cargando…</p>'; return; }
     if (O.catsError) { el.innerHTML = `<div class="callout">Falta preparar la base de datos para Otto ordena. Ejecuta supabase/ordena.sql en Supabase.</div>`; return; }
+
+    const dirOf = d => d.direction === 'venta' ? 'venta' : 'compra';
+    const allInP = O.docs.filter(inPeriod);
+    const nDir = { compra: allInP.filter(d => dirOf(d) === 'compra').length, venta: allInP.filter(d => dirOf(d) === 'venta').length };
+    const seg = `<div class="chips seg" role="group" aria-label="Tipo de documento">
+      <button class="${O.dir === 'compra' ? 'on' : ''}" onclick="OttoOrder.dir('compra')">Compras ${nDir.compra}</button>
+      <button class="${O.dir === 'venta' ? 'on' : ''}" onclick="OttoOrder.dir('venta')">Ventas ${nDir.venta}</button></div>`;
+
     if (!O.docs.length) {
-      el.innerHTML = `<div class="rows-empty drop-hint"><p>Todavía no hay documentos. Sube una factura o un ticket (PDF o foto) y Otto leerá sus datos. También puedes arrastrarlos aquí.</p>
-        <button class="btn btn-primary" onclick="document.getElementById('orderFile').click()">Subir documentos</button></div>`;
+      el.innerHTML = `<div class="order-bar">${seg}</div><div class="rows-empty drop-hint"><p>${O.dir === 'venta' ? 'Todavía no hay facturas emitidas. Sube una factura que hayas hecho a un cliente (PDF o foto) y Otto leerá sus datos.' : 'Todavía no hay documentos. Sube una factura o un ticket (PDF o foto) y Otto leerá sus datos.'} También puedes arrastrarlos aquí.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('orderFile').click()">${O.dir === 'venta' ? 'Subir factura emitida' : 'Subir factura o ticket'}</button></div>`;
       return;
     }
+
+    const quarters = [...new Set(O.docs.map(quarterOf).filter(Boolean))].sort().reverse();
     const months = [...new Set(O.docs.map(monthOf).filter(Boolean))].sort().reverse();
-    if (O.month !== 'all' && !months.includes(O.month)) months.unshift(O.month);
-    const inP = O.docs.filter(inPeriod);
-    const F = figuresFor(inP);
-    const list = inP.filter(d => O.filter === 'all' ? true : O.filter === 'review' ? (d.status === 'review' || d.status === 'error' || d.status === 'pending') : d.status === 'done');
-    const cnt = { all: inP.length, review: F.review + inP.filter(d => d.status === 'pending').length, done: inP.filter(d => d.status === 'done').length };
+    if (O.period !== 'all' && !quarters.includes(O.period) && !months.includes(O.period)) (isQ(O.period) ? quarters : months).unshift(O.period);
+    const dirDocs = allInP.filter(d => dirOf(d) === O.dir);
+    const F = figuresFor(dirDocs);
+    const list = dirDocs.filter(d => O.filter === 'all' ? true : O.filter === 'review' ? (needsReview(d) || d.status === 'pending') : d.status === 'done');
+    const cnt = { all: dirDocs.length, review: dirDocs.filter(d => needsReview(d) || d.status === 'pending').length, done: dirDocs.filter(d => d.status === 'done').length };
     const chip = (k, l) => `<button class="${O.filter === k ? 'on' : ''}" onclick="OttoOrder.filter('${k}')">${l} ${cnt[k]}</button>`;
+    const sale = O.dir === 'venta', pk = O.packing;
+    const pendTotal = allInP.filter(d => d.status !== 'done').length;
     el.innerHTML = `
+      <div class="order-bar">${seg}
+        <label class="order-month"><span class="sr-only">Periodo</span><select onchange="OttoOrder.period(this.value)">
+          <option value="all" ${O.period === 'all' ? 'selected' : ''}>Todos los periodos</option>
+          ${quarters.length ? `<optgroup label="Trimestres">${quarters.map(q => `<option value="${q}" ${O.period === q ? 'selected' : ''}>${esc(periodName(q))}</option>`).join('')}</optgroup>` : ''}
+          ${months.length ? `<optgroup label="Meses">${months.map(m => `<option value="${m}" ${O.period === m ? 'selected' : ''}>${esc(monthName(m))}</option>`).join('')}</optgroup>` : ''}</select></label>
+      </div>
       <dl class="figs figs-row">
-        <div><dt>Documentos</dt><dd>${F.count}</dd></div>
+        <div><dt>${sale ? 'Facturas emitidas' : 'Documentos'}</dt><dd>${F.count}</dd></div>
         <div><dt>Por revisar</dt><dd>${F.review}</dd></div>
-        <div><dt>Gastos</dt><dd>${eur(F.spend)}</dd></div>
-        <div><dt>IVA soportado</dt><dd>${eur(F.vat)}</dd></div>
+        <div><dt>${sale ? 'Ingresos' : 'Gastos'}</dt><dd>${eur(sale ? F.income : F.spend)}</dd></div>
+        <div><dt>${sale ? 'IVA repercutido' : 'IVA soportado'}</dt><dd>${eur(sale ? F.vatOut : F.vat)}</dd></div>
       </dl>
+      ${summaryHtml(allInP)}
       <div class="order-bar">
         <div class="chips" role="group" aria-label="Filtrar documentos">${chip('all', 'Todos')}${chip('review', 'Por revisar')}${chip('done', 'Revisados')}</div>
-        <label class="order-month"><span class="sr-only">Periodo</span><select onchange="OttoOrder.month(this.value)">
-          <option value="all" ${O.month === 'all' ? 'selected' : ''}>Todos los meses</option>
-          ${months.map(m => `<option value="${m}" ${O.month === m ? 'selected' : ''}>${esc(monthName(m))}</option>`).join('')}</select></label>
+        <div class="export-bar">
+          <button class="btn btn-secondary" id="xlsBtn" onclick="OttoOrder.exportXlsx()" ${pk || !allInP.length ? 'disabled' : ''}>Descargar Excel</button>
+          <button class="btn btn-primary" id="packBtn" onclick="OttoOrder.exportPack()" ${pk || !allInP.length ? 'disabled' : ''} title="${pendTotal ? pendTotal + ' por revisar en este periodo' : 'Excel y PDFs renombrados en un ZIP'}">${pk ? (pk.total ? `Preparando ${Math.min(pk.done + 1, pk.total)} de ${pk.total}…` : 'Preparando…') : 'Paquete para la gestoría'}</button>
+        </div>
       </div>
-      ${list.length ? `<ul class="rows doc-list">${list.map(row).join('')}</ul>` : `<div class="rows-empty"><p>No hay documentos con este filtro.</p></div>`}`;
+      ${list.length ? `<ul class="rows doc-list">${list.map(row).join('')}</ul>` : `<div class="rows-empty"><p>${dirDocs.length ? 'No hay documentos con este filtro.' : (sale ? 'No hay facturas emitidas en este periodo.' : 'No hay compras en este periodo.')}</p></div>`}`;
   }
 
   function row(d) {
@@ -224,7 +296,7 @@
     if (busy) meta = 'Otto está leyendo el documento…';
     else if (unread) meta = 'Subido, pero Otto aún no lo ha leído. Ábrelo para leerlo de nuevo.';
     else if (d.status === 'error') meta = d.extract_error || 'No se pudo leer';
-    else if (d.status === 'review') meta = flags.map(f => FLAG_TXT[f]).filter(Boolean).slice(0, 2).join(' · ') || 'Pendiente de revisar';
+    else if (d.status === 'review') meta = flags.map(f => flagTxt(f, d.direction)).filter(Boolean).slice(0, 2).join(' · ') || 'Pendiente de revisar';
     else meta = [TYPE_TXT[d.doc_type], d.doc_date ? shortDate(d.doc_date) : null, d.concept].filter(Boolean).join(' · ');
     const tag = busy ? '' : unread ? '<span class="tag tag-warn">Sin leer</span>' : d.status === 'review' ? '<span class="tag tag-warn">Por revisar</span>' : d.status === 'error' ? '<span class="tag tag-danger">Error</span>' : '';
     const sub = (d.status === 'review' && (d.doc_date || d.concept)) ? [TYPE_TXT[d.doc_type], d.doc_date ? shortDate(d.doc_date) : null, d.concept].filter(Boolean).join(' · ') : '';
@@ -268,6 +340,7 @@
     const lines = Array.isArray(d.lines) ? d.lines : [];
     const cat = catOf(d.concept);
     const dup = d.duplicate_of ? O.docs.find(x => x.id === d.duplicate_of) : null;
+    const sale = isSale(d);
     return `<div class="doc-panel" role="dialog" aria-modal="true" aria-labelledby="docTitle" tabindex="-1">
       <header class="doc-head"><h2 id="docTitle">${esc(d.supplier || d.file_name)}</h2>
         <button class="icon-btn" aria-label="Cerrar" onclick="OttoOrder.close()"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></header>
@@ -276,21 +349,21 @@
           <p class="doc-file muted-note">${esc(d.file_name)} · <a data-dl hidden target="_blank" rel="noopener">Abrir en otra pestaña</a></p></div>
         <form class="doc-form" onsubmit="event.preventDefault();OttoOrder.save('${esc(d.id)}')">
           ${d.status === 'error' ? `<div class="callout">${esc(d.extract_error || 'No se pudo leer este documento.')} Puedes volver a intentarlo o rellenar los datos a mano.</div>` : ''}
-          ${flags.length && d.status !== 'error' ? `<div class="callout">${flags.map(f => esc(FLAG_TXT[f] || f)).join(' · ')}${dup ? ` · Se parece a «${esc(dup.supplier || dup.file_name)}»${dup.doc_date ? ' del ' + esc(shortDate(dup.doc_date)) : ''}.` : ''}</div>` : ''}
+          ${flags.length && d.status !== 'error' ? `<div class="callout">${flags.map(f => esc(flagTxt(f, d.direction))).join(' · ')}${dup ? ` · Se parece a «${esc(dup.supplier || dup.file_name)}»${dup.doc_date ? ' del ' + esc(shortDate(dup.doc_date)) : ''}.` : ''}</div>` : ''}
           <div class="doc-fields">
             <div class="input-group"><label for="of-doc_type">Tipo</label><select id="of-doc_type" data-f="doc_type">
               ${['factura', 'ticket', 'otro'].map(t => `<option value="${t}" ${d.doc_type === t ? 'selected' : ''}>${TYPE_TXT[t]}</option>`).join('')}
               ${d.doc_type ? '' : '<option value="" selected>Sin indicar</option>'}</select></div>
             ${field('Fecha', 'doc_date', d.doc_date, { type: 'date' })}
-            ${field('Proveedor', 'supplier', d.supplier, { cls: 'span-2' })}
-            ${field('NIF del proveedor', 'supplier_tax_id', d.supplier_tax_id)}
-            ${field('Número de documento', 'doc_number', d.doc_number)}
+            ${field(sale ? 'Cliente' : 'Proveedor', 'supplier', d.supplier, { cls: 'span-2' })}
+            ${field(sale ? 'NIF del cliente' : 'NIF del proveedor', 'supplier_tax_id', d.supplier_tax_id)}
+            ${field(sale ? 'Número de factura' : 'Número de documento', 'doc_number', d.doc_number)}
             ${field('Concepto', 'description', d.description, { cls: 'span-2' })}
-            <div class="input-group span-2"><label for="of-concept">Categoría</label><select id="of-concept" data-f="concept" onchange="OttoOrder.catChange(this)">
+            ${sale ? '' : `<div class="input-group span-2"><label for="of-concept">Categoría</label><select id="of-concept" data-f="concept" onchange="OttoOrder.catChange(this)">
               <option value="">Sin categoría</option>
               ${O.cats.map(c => `<option value="${esc(c.concept)}" ${d.concept === c.concept ? 'selected' : ''}>${esc(c.concept)}</option>`).join('')}
               ${d.concept && !cat ? `<option value="${esc(d.concept)}" selected>${esc(d.concept)}</option>` : ''}</select>
-              <p class="field-note" id="of-type-note">${cat ? 'Tipo de gasto para la gestoría: ' + esc(cat.expense_type) : (d.expense_type ? 'Tipo de gasto para la gestoría: ' + esc(d.expense_type) : '')}</p></div>
+              <p class="field-note" id="of-type-note">${cat ? 'Tipo de gasto para la gestoría: ' + esc(cat.expense_type) : (d.expense_type ? 'Tipo de gasto para la gestoría: ' + esc(d.expense_type) : '')}</p></div>`}
             ${field('Base imponible', 'base_amount', fmtIn(d.base_amount), { mode: 'decimal', oninput: 'OttoOrder.check()' })}
             ${field('IVA %', 'vat_rate', d.vat_rate == null ? '' : String(d.vat_rate).replace('.', ','), { mode: 'decimal', oninput: 'OttoOrder.check()' })}
             ${field('IVA importe', 'vat_amount', fmtIn(d.vat_amount), { mode: 'decimal', oninput: 'OttoOrder.check()' })}
@@ -328,7 +401,7 @@
     const patch = {
       doc_type: v.doc_type || null, doc_date: v.doc_date || null, supplier: v.supplier.trim() || null,
       supplier_tax_id: v.supplier_tax_id.toUpperCase().replace(/[\s.-]/g, '') || null, doc_number: v.doc_number.trim() || null,
-      description: v.description.trim() || null, concept: v.concept || null, expense_type: c ? c.expense_type : (v.concept && v.concept === d.concept ? d.expense_type : null),
+      description: v.description.trim() || null, concept: isSale(d) ? null : (v.concept || null), expense_type: isSale(d) ? null : (c ? c.expense_type : (v.concept && v.concept === d.concept ? d.expense_type : null)),
       base_amount: parseIn(v.base_amount), vat_rate: parseIn(v.vat_rate), vat_amount: parseIn(v.vat_amount), total: parseIn(v.total), notes: v.notes.trim() || null,
     };
     patch.flags = flagsOf({ ...patch, duplicate_of: d.duplicate_of });
@@ -397,6 +470,126 @@
     O.cats = O.cats.filter(x => x.id !== id); if (O.editCat === id) O.editCat = null; renderSettings();
   }
 
+  /* ── Paquete para la gestoría ── */
+  const LIBS = {
+    xlsx: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+  };
+  const libCache = {};
+  function loadLib(name, global) {
+    if (window[global]) return Promise.resolve(window[global]);
+    if (!libCache[name]) libCache[name] = new Promise((res, rej) => {
+      const sc = document.createElement('script'); sc.src = LIBS[name]; sc.async = true;
+      sc.onload = () => window[global] ? res(window[global]) : rej(new Error(name));
+      sc.onerror = () => { delete libCache[name]; rej(new Error(name)); };
+      document.head.appendChild(sc);
+    });
+    return libCache[name];
+  }
+  const STATUS_TXT = { done: 'Revisado', review: 'Por revisar', pending: 'Sin leer', error: 'Error' };
+  const safeName = s => String(s || '').normalize('NFC').replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+  const extOf = d => { const m = /\.([a-z0-9]{2,5})$/i.exec(d.file_name || ''); return m ? m[1].toLowerCase() : ({ 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[d.mime] || 'bin'); };
+  function packName(d, used) {
+    const base = [d.doc_date || 'sin-fecha', safeName(d.supplier) || 'sin-nombre', safeName(d.doc_number), d.total != null ? String(Number(d.total).toFixed(2)).replace('.', ',') + 'EUR' : ''].filter(Boolean).join(' ');
+    const ext = extOf(d); let n = base + '.' + ext, i = 2;
+    while (used.has(n.toLowerCase())) n = `${base} (${i++}).${ext}`;
+    used.add(n.toLowerCase()); return n;
+  }
+  const xlDate = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3], 12) : ''; };
+  const numOrBlank = n => n == null || n === '' ? '' : Number(n);
+  const qLabel = d => { const q = quarterOf(d); return q ? 'T' + q.slice(-1) + ' ' + q.slice(0, 4) : ''; };
+  const avisos = d => (Array.isArray(d.flags) ? d.flags : []).map(f => flagTxt(f, d.direction)).join(' · ');
+
+  function bookRows(docs, files) {
+    const byDate = (a, b) => (dateOf(a) < dateOf(b) ? -1 : dateOf(a) > dateOf(b) ? 1 : 0);
+    const buys = docs.filter(d => !isSale(d)).sort(byDate), sales = docs.filter(isSale).sort(byDate);
+    const common = d => [xlDate(d.doc_date), qLabel(d)];
+    const tail = d => [d.currency || 'EUR', STATUS_TXT[d.status] || d.status, avisos(d), d.notes || '', files.get(d.id) || d.file_name || ''];
+    const H1 = ['Fecha', 'Trimestre', 'Proveedor', 'NIF proveedor', 'Nº documento', 'Tipo', 'Concepto', 'Categoría', 'Tipo de gasto', 'Base imponible', 'IVA %', 'IVA importe', 'Total', 'Moneda', 'Estado', 'Avisos', 'Observaciones', 'Archivo'];
+    const H2 = ['Fecha', 'Trimestre', 'Cliente', 'NIF cliente', 'Nº factura', 'Tipo', 'Concepto', 'Base imponible', 'IVA %', 'IVA importe', 'Total', 'Moneda', 'Estado', 'Avisos', 'Observaciones', 'Archivo'];
+    const R1 = buys.map(d => [...common(d), d.supplier || '', d.supplier_tax_id || '', d.doc_number || '', TYPE_TXT[d.doc_type] || '', d.description || '', d.concept || '', d.expense_type || '', numOrBlank(d.base_amount), numOrBlank(d.vat_rate), numOrBlank(d.vat_amount), numOrBlank(d.total), ...tail(d)]);
+    const R2 = sales.map(d => [...common(d), d.supplier || '', d.supplier_tax_id || '', d.doc_number || '', TYPE_TXT[d.doc_type] || '', d.description || '', numOrBlank(d.base_amount), numOrBlank(d.vat_rate), numOrBlank(d.vat_amount), numOrBlank(d.total), ...tail(d)]);
+    const S = summaryData(docs), gb = grand(S.buy), gs = grand(S.sell);
+    const sum = [['Resumen', periodName(O.period)], []];
+    if (S.buy.length) { sum.push(['IVA soportado (compras)'], ['Tipo', 'Base', 'Cuota', 'Total', 'Documentos']); S.buy.forEach(r => sum.push([r.k, r.base, r.vat, r.total, r.n])); sum.push(['Total', gb.base, gb.vat, gb.total, gb.n], []); }
+    if (S.sell.length) { sum.push(['IVA repercutido (ventas)'], ['Tipo', 'Base', 'Cuota', 'Total', 'Documentos']); S.sell.forEach(r => sum.push([r.k, r.base, r.vat, r.total, r.n])); sum.push(['Total', gs.base, gs.vat, gs.total, gs.n], []); }
+    if (S.exp.length) { sum.push(['Gastos por tipo de gasto'], ['Tipo de gasto', 'Base', 'Total', 'Documentos']); S.exp.forEach(r => sum.push([r.k, r.base, r.total, r.n])); sum.push([]); }
+    if (S.buy.length || S.sell.length) sum.push(['IVA repercutido menos soportado (orientativo)', S.diff]);
+    return { H1, R1, H2, R2, sum };
+  }
+
+  function buildWorkbook(XLSX, docs, files) {
+    const { H1, R1, H2, R2, sum } = bookRows(docs, files);
+    const wb = XLSX.utils.book_new();
+    const add = (name, head, rows, moneyCols, widths) => {
+      const ws = XLSX.utils.aoa_to_sheet([head, ...rows], { cellDates: true });
+      ws['!cols'] = widths.map(w => ({ wch: w }));
+      ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let r = 1; r <= range.e.r; r++) {
+        const c0 = ws[XLSX.utils.encode_cell({ r, c: 0 })]; if (c0 && c0.v instanceof Date) c0.z = 'dd/mm/yyyy';
+        moneyCols.forEach(c => { const cell = ws[XLSX.utils.encode_cell({ r, c })]; if (cell && typeof cell.v === 'number') cell.z = '#,##0.00'; });
+      }
+      ws['!autofilter'] = { ref: ws['!ref'] };
+      XLSX.utils.book_append_sheet(wb, ws, name);
+    };
+    add('Compras', H1, R1, [9, 11, 12], [11, 10, 28, 14, 16, 10, 28, 20, 20, 14, 7, 12, 12, 8, 12, 34, 28, 44]);
+    add('Ventas', H2, R2, [7, 9, 10], [11, 10, 28, 14, 16, 10, 28, 14, 7, 12, 12, 8, 12, 34, 28, 44]);
+    const ws = XLSX.utils.aoa_to_sheet(sum); ws['!cols'] = [{ wch: 42 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 12 }];
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let r = 0; r <= range.e.r; r++) for (let c = 1; c <= 3; c++) { const cell = ws[XLSX.utils.encode_cell({ r, c })]; if (cell && typeof cell.v === 'number' && !(c === 4)) cell.z = '#,##0.00'; }
+    XLSX.utils.book_append_sheet(wb, ws, 'Resumen');
+    return wb;
+  }
+
+  // Si no se puede cargar la librería de Excel, se entrega un CSV por tipo
+  function csvOf(head, rows) {
+    const q = v => { const t = v instanceof Date ? v.toISOString().slice(0, 10) : String(v ?? '').replace(/\./g, v !== '' && typeof v === 'number' ? ',' : '.'); return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+    return '﻿' + [head, ...rows].map(r => r.map(q).join(';')).join('\r\n');
+  }
+  function saveBlob(blob, name) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+  const fileStem = () => 'Otto ordena ' + (O.period === 'all' ? 'todo' : isQ(O.period) ? O.period.replace('-', ' ') : O.period);
+
+  async function exportData(withFiles) {
+    if (O.packing) return;
+    const docs = O.docs.filter(inPeriod); if (!docs.length) return;
+    const pend = docs.filter(d => d.status !== 'done').length;
+    if (pend && !confirm(`Hay ${pend} ${pend === 1 ? 'documento' : 'documentos'} sin revisar en este periodo. Se incluirán marcados como «Por revisar». ¿Continuar?`)) return;
+    O.packing = { done: 0, total: 0 }; renderPage();
+    try {
+      let XLSX = null; try { XLSX = await loadLib('xlsx', 'XLSX'); } catch (e) { XLSX = null; }
+      const files = new Map(), used = new Set();
+      docs.forEach(d => files.set(d.id, (isSale(d) ? 'ventas/' : 'compras/') + packName(d, used)));
+      if (!withFiles) {
+        docs.forEach(d => files.set(d.id, d.file_name || ''));
+        if (XLSX) { const wb = buildWorkbook(XLSX, docs, files); const out = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellDates: true }); saveBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileStem() + '.xlsx'); }
+        else { const b = bookRows(docs, files); saveBlob(new Blob([csvOf(b.H1, b.R1)], { type: 'text/csv;charset=utf-8' }), fileStem() + ' compras.csv'); if (b.R2.length) saveBlob(new Blob([csvOf(b.H2, b.R2)], { type: 'text/csv;charset=utf-8' }), fileStem() + ' ventas.csv'); showToast('No se pudo cargar el generador de Excel; se han descargado archivos CSV', 'info'); }
+        showToast('Excel descargado', 'success'); return;
+      }
+      let JSZip; try { JSZip = await loadLib('jszip', 'JSZip'); } catch (e) { throw new Error('No se pudo cargar el generador de ZIP. Prueba con «Descargar Excel».'); }
+      const zip = new JSZip(), failed = [];
+      O.packing.total = docs.length; renderPage();
+      for (const d of docs) {
+        try {
+          const r = await sb.storage.from('ordena').download(d.file_path);
+          if (r.error || !r.data) throw new Error('x');
+          zip.file(files.get(d.id), r.data);
+        } catch (e) { failed.push(d); files.set(d.id, 'NO DESCARGADO · ' + (d.file_name || '')); }
+        O.packing.done++; renderPage();
+      }
+      if (XLSX) zip.file(fileStem() + '.xlsx', XLSX.write(buildWorkbook(XLSX, docs, files), { bookType: 'xlsx', type: 'array', cellDates: true }));
+      else { const b = bookRows(docs, files); zip.file(fileStem() + ' compras.csv', csvOf(b.H1, b.R1)); if (b.R2.length) zip.file(fileStem() + ' ventas.csv', csvOf(b.H2, b.R2)); }
+      const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      saveBlob(blob, fileStem() + '.zip');
+      showToast(failed.length ? `Paquete listo, pero ${failed.length} ${failed.length === 1 ? 'archivo no se pudo descargar' : 'archivos no se pudieron descargar'}` : 'Paquete listo para la gestoría', failed.length ? 'info' : 'success');
+    } catch (e) {
+      showToast(e.message || 'No se pudo preparar el paquete', 'error');
+    } finally { O.packing = null; renderPage(); }
+  }
+
   /* ── Inicio ── */
   const when = iso => {
     const d = new Date(iso); if (isNaN(d)) return '';
@@ -414,7 +607,7 @@
       return O.docs.filter(d => d.status === 'review' || d.status === 'error').slice(0, 4).map(d => ({
         tone: d.status === 'error' ? 'danger' : 'warn',
         title: `${d.supplier || d.file_name}${d.status === 'error' ? ': no se pudo leer' : ' por revisar'}`,
-        meta: (d.status === 'error' ? (d.extract_error || '') : [d.total != null ? eur(d.total) : null, (d.flags || []).map(f => FLAG_TXT[f]).filter(Boolean)[0]].filter(Boolean).join(' · ')),
+        meta: (d.status === 'error' ? (d.extract_error || '') : [d.total != null ? eur(d.total) : null, (d.flags || []).map(f => flagTxt(f, d.direction)).filter(Boolean)[0]].filter(Boolean).join(' · ')),
         when: when(d.created_at), label: 'Revisar', run() { showPage('order'); OttoOrder.open(d.id); },
       }));
     },
@@ -425,7 +618,7 @@
         { label: 'Documentos del mes', value: String(F.count) },
         { label: 'Por revisar', value: String(O.docs.filter(d => d.status === 'review' || d.status === 'error').length) },
         { label: 'Gastos del mes', value: eur(F.spend) },
-        { label: 'IVA soportado del mes', value: eur(F.vat) },
+        { label: 'Ingresos del mes', value: eur(F.income) },
       ];
     },
   });
@@ -439,8 +632,11 @@
     restoreCats() { return seedCats(true); },
     pick(input) { const f = [...input.files]; input.value = ''; handleFiles(f); },
     filter(f) { O.filter = f; renderPage(); },
-    month(m) { O.month = m; renderPage(); },
-    reset() { O.docs = []; O.cats = []; O.loaded = false; O.month = null; O.filter = 'all'; O.openId = null; O.editCat = null; close(); renderAll(); },
+    period(p) { O.period = p; renderPage(); },
+    dir(x) { O.dir = x; O.filter = 'all'; renderPage(); },
+    exportXlsx() { return exportData(false); },
+    exportPack() { return exportData(true); },
+    reset() { O.docs = []; O.cats = []; O.loaded = false; O.period = null; O.dir = 'compra'; O.filter = 'all'; O.openId = null; O.editCat = null; close(); renderAll(); },
   };
 
   // Arrastrar archivos sobre la pantalla

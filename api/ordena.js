@@ -34,7 +34,7 @@ module.exports = route(['POST'], async (req, body) => {
 
     const out = await complete(ws.ai_provider, {
       apiKey, model: ws.ai_model, system: SYSTEM, maxTokens: 2500,
-      messages: [{ role: 'user', content: buildPrompt(cats || []) }],
+      messages: [{ role: 'user', content: buildPrompt(cats || [], doc.direction) }],
       files: [{ mime: doc.mime, base64: buf.toString('base64'), name: doc.file_name }],
     });
     await db.from('usage_log').insert({
@@ -43,7 +43,7 @@ module.exports = route(['POST'], async (req, body) => {
     });
 
     let built;
-    try { built = buildFields(out.text, cats || []); }
+    try { built = buildFields(out.text, cats || [], doc.direction); }
     catch { throw new HttpError(502, 'No se pudo interpretar la respuesta de la IA. Prueba con otro documento o vuelve a leerlo.'); }
     const f = built.fields;
 
